@@ -17,14 +17,14 @@ load_dotenv()
 
 app = FastAPI(title="DCLM Appraisal")
 
-# ✅ YOUR ORIGINAL PATHS — RESTORED EXACTLY
-app.mount("/static", StaticFiles(directory="../frontend/static"), name="static")
-templates = Jinja2Templates(directory="../frontend/templates")
+# ✅ FIXED PATHS — NO MORE ../ — works inside Docker
+app.mount("/static", StaticFiles(directory="frontend/static"), name="static")
+templates = Jinja2Templates(directory="frontend/templates")
 
-# ✅ YOUR ORIGINAL DB CONFIG — RESTORED + ONLY FIXED EMPTY PORT ERROR
+# ✅ YOUR ORIGINAL DB CONFIG + FIXED EMPTY PORT ERROR
 DB_CONFIG = {
     "host": os.getenv("MYSQL_HOST"),
-    "port": int(os.getenv("MYSQL_PORT", "3306")),  # ✅ Safe default, no other change
+    "port": int(os.getenv("MYSQL_PORT", "3306")),
     "user": os.getenv("MYSQL_USER"),
     "password": os.getenv("MYSQL_PASSWORD"),
     "database": os.getenv("MYSQL_DB"),
@@ -89,7 +89,6 @@ async def health():
 
 @app.get("/", response_class=HTMLResponse)
 async def form(request: Request):
-    # ✅ YOUR ORIGINAL TEMPLATE CALL — RESTORED
     return templates.TemplateResponse(
         "index.html",
         context={"request": request}
