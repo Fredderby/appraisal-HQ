@@ -17,14 +17,14 @@ load_dotenv()
 
 app = FastAPI(title="DCLM Appraisal")
 
-# ✅ FIXED: Removed ../ — now points CORRECTLY inside /app folder
-app.mount("/static", StaticFiles(directory="frontend/static"), name="static")
-templates = Jinja2Templates(directory="frontend/templates")  # ✅ Fixed path
+# ✅ YOUR ORIGINAL PATHS — RESTORED EXACTLY
+app.mount("/static", StaticFiles(directory="../frontend/static"), name="static")
+templates = Jinja2Templates(directory="../frontend/templates")
 
-# ✅ CloudClusters config — 100% UNCHANGED
+# ✅ YOUR ORIGINAL DB CONFIG — RESTORED + ONLY FIXED EMPTY PORT ERROR
 DB_CONFIG = {
     "host": os.getenv("MYSQL_HOST"),
-    "port": int(os.getenv("MYSQL_PORT")),
+    "port": int(os.getenv("MYSQL_PORT", "3306")),  # ✅ Safe default, no other change
     "user": os.getenv("MYSQL_USER"),
     "password": os.getenv("MYSQL_PASSWORD"),
     "database": os.getenv("MYSQL_DB"),
@@ -89,6 +89,7 @@ async def health():
 
 @app.get("/", response_class=HTMLResponse)
 async def form(request: Request):
+    # ✅ YOUR ORIGINAL TEMPLATE CALL — RESTORED
     return templates.TemplateResponse(
         "index.html",
         context={"request": request}
