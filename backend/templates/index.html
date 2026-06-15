@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DCLM 360° Peer Appraisal Form</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <header class="form-header">
+            <h1>DEEPER LIFE BIBLE CHURCH (DCLM)</h1>
+            <h2>ANONYMOUS 360° PEER APPRAISAL FORM</h2>
+            <p class="instruction">Please assess your colleague by selecting one option per section. Time to complete: 5–10 minutes.</p>
+        </header>
+
+        {% if error %}
+        <div class="alert error">{{ error }}</div>
+        {% endif %}
+
+        {% if success %}
+        <div class="alert success">{{ success }}</div>
+        {% endif %}
+
+        <form action="/submit" method="POST" id="appraisalForm" class="form-grid">
+            <!-- Staff Name -->
+            <section class="form-section">
+                <label class="section-label">Staff Being Assessed:</label>
+                <input type="text" name="staff_name" class="form-input" placeholder="Enter full name" required>
+            </section>
+
+            <!-- Rating Scale Legend -->
+            <section class="form-section legend-section">
+                <h3>Rating Scale</h3>
+                <div class="rating-legend">
+                    <span><strong>Excellent:</strong> 90–100%</span>
+                    <span><strong>Very Good:</strong> 80–89%</span>
+                    <span><strong>Good:</strong> 70–79%</span>
+                    <span><strong>Fair:</strong> 60–69%</span>
+                    <span><strong>Needs Improvement:</strong> Below 60%</span>
+                </div>
+            </section>
+
+            <!-- 1. Christian Conduct -->
+            <section class="form-section">
+                <h3>1. Christian Conduct and Integrity</h3>
+                <p class="section-desc">Demonstrates godly character, honesty, and respect for others.</p>
+                <div class="radio-group">
+                    <label class="radio-option">
+                        <input type="radio" name="christian_conduct" value="90-100" required>
+                        <span class="radio-dot"></span> Excellent (90–100%)
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="christian_conduct" value="80-89">
+                        <span class="radio-dot"></span> Very Good (80–89%)
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="christian_conduct" value="70-79">
+                        <span class="radio-dot"></span> Good (70–79%)
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="christian_conduct" value="60-69">
+                        <span class="radio-dot"></span> Fair (60–69%)
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="christian_conduct" value="below-60">
+                        <span class="radio-dot"></span> Needs Improvement (Below 60%)
+                    </label>
+                </div>
+            </section>
+
+            <!-- 2. Job Performance -->
+            <section class="form-section">
+                <h3>2. Job Performance</h3>
+                <p class="section-desc">Carries out assigned duties effectively and produces quality work.</p>
+                <div class="radio-group">
+                    <label class="radio-option">
+                        <input type="radio" name="job_performance" value="90-100" required>
+                        <span class="radio-dot"></span> Excellent (90–100%)
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="job_performance" value="80-89">
+                        <span class="radio-dot"></span> Very Good (80–89%)
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="job_performance" value="70-79">
+                        <span class="radio-dot"></span> Good (70–79%)
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="job_performance" value="60-69">
+                        <span class="radio-dot"></span> Fair (60–69%)
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="job_performance" value="below-60">
+                        <span class="radio-dot"></span> Needs Improvement (Below 60%)
+                    </label>
+                </div>
+            </section>
+
+            <!-- 3. Reliability -->
+            <section class="form-section">
+                <h3>3. Reliability and Accountability</h3>
+                <p class="section-desc">Can be depended upon and follows established procedures.</p>
+                <div class="radio-group">
+                    <label class="radio-option">
+                        <input type="radio" name="reliability" value="90-100" required>
+                        <span class="radio-dot"></span> Excellent (90–100%)
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="reliability" value="80-89">
+                        <span class="radio-dot"></span> Very Good (80–89%)
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="reliability" value="70-79">
+                        <span class="radio-dot"></span> Good (70–79%)
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="reliability" value="60-69">
+                        <span class="radio-dot"></span> Fair (60–69%)
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="reliability" value="below-60">
+                        <span class="radio-dot"></span> Needs Improvement (Below 60%)
+                    </label>
+                </div>
+            </section>
+
+            <!-- 4. Teamwork -->
+            <section class="form-section">
+                <h3>4. Teamwork and Relationship with Others</h3>
+                <p class="section-desc">Cooperates well and maintains healthy working relationships.</p>
+                <div class="radio-group">
+                    <label class="radio-option">
+                        <input type="radio" name="teamwork" value="90-100" required>
+                        <span class="radio-dot"></span> Excellent (90–100%)
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="teamwork" value="80-89">
+                        <span class="radio-dot"></span> Very Good (80–89%)
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="teamwork" value="70-79">
+                        <span class="radio-dot"></span> Good (70–79%)
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="teamwork" value="60-69">
+                        <span class="radio-dot"></span> Fair (60–69%)
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="teamwork" value="below-60">
+                        <span class="radio-dot"></span> Needs Improvement (Below 60%)
+                    </label>
+                </div>
+            </section>
+
+            <!-- 5. Communication (pre-selected to Fair) -->
+            <section class="form-section">
+                <h3>5. Communication</h3>
+                <p class="section-desc">Communicates clearly and responds appropriately to colleagues.</p>
+                <div class="radio-group">
+                    <label class="radio-option">
+                        <input type="radio" name="communication" value="90-100" required>
+                        <span class="radio-dot"></span> Excellent (90–100%)
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="communication" value="80-89">
+                        <span class="radio-dot"></span> Very Good (80–89%)
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="communication" value="70-79">
+                        <span class="radio-dot"></span> Good (70–79%)
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="communication" value="60-69" checked>
+                        <span class="radio-dot"></span> Fair (60–69%)
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="communication" value="below-60">
+                        <span class="radio-dot"></span> Needs Improvement (Below 60%)
+                    </label>
+                </div>
+            </section>
+
+            <!-- 6. Initiative -->
+            <section class="form-section">
+                <h3>6. Initiative and Service Orientation</h3>
+                <p class="section-desc">Shows willingness to serve, takes responsibility, and contributes positively.</p>
+                <div class="radio-group">
+                    <label class="radio-option">
+                        <input type="radio" name="initiative" value="90-100" required>
+                        <span class="radio-dot"></span> Excellent (90–100%)
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="initiative" value="80-89">
+                        <span class="radio-dot"></span> Very Good (80–89%)
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="initiative" value="70-79">
+                        <span class="radio-dot"></span> Good (70–79%)
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="initiative" value="60-69">
+                        <span class="radio-dot"></span> Fair (60–69%)
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="initiative" value="below-60">
+                        <span class="radio-dot"></span> Needs Improvement (Below 60%)
+                    </label>
+                </div>
+            </section>
+
+            <!-- 7. Adaptability -->
+            <section class="form-section">
+                <h3>7. Adaptability and Continuous Improvement</h3>
+                <p class="section-desc">Shows willingness to learn and adapt to new responsibilities.</p>
+                <div class="radio-group">
+                    <label class="radio-option">
+                        <input type="radio" name="adaptability" value="90-100" required>
+                        <span class="radio-dot"></span> Excellent (90–100%)
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="adaptability" value="80-89">
+                        <span class="radio-dot"></span> Very Good (80–89%)
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="adaptability" value="70-79">
+                        <span class="radio-dot"></span> Good (70–79%)
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="adaptability" value="60-69">
+                        <span class="radio-dot"></span> Fair (60–69%)
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="adaptability" value="below-60">
+                        <span class="radio-dot"></span> Needs Improvement (Below 60%)
+                    </label>
+                </div>
+            </section>
+
+            <!-- Overall Assessment -->
+            <section class="form-section overall-section">
+                <h3>OVERALL ASSESSMENT</h3>
+                <div class="radio-group inline-radio">
+                    <label class="radio-option">
+                        <input type="radio" name="overall_assessment" value="90-100" required>
+                        <span class="radio-dot"></span> Outstanding (90–100%)
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="overall_assessment" value="80-89">
+                        <span class="radio-dot"></span> Very Good (80–89%)
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="overall_assessment" value="70-79">
+                        <span class="radio-dot"></span> Good (70–79%)
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="overall_assessment" value="60-69">
+                        <span class="radio-dot"></span> Fair (60–69%)
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="overall_assessment" value="below-60">
+                        <span class="radio-dot"></span> Needs Improvement (Below 60%)
+                    </label>
+                </div>
+            </section>
+
+            <!-- Comments -->
+            <section class="form-section comments-section">
+                <h3>OPTIONAL COMMENTS</h3>
+                <div class="comment-block">
+                    <label>Strengths:</label>
+                    <textarea name="strengths" class="form-textarea" placeholder="List key strengths..."></textarea>
+                </div>
+                <div class="comment-block">
+                    <label>Areas for Improvement:</label>
+                    <textarea name="improvements" class="form-textarea" placeholder="Suggest areas to develop..."></textarea>
+                </div>
+            </section>
+
+            <!-- Confidentiality -->
+            <section class="form-section note-section">
+                <div class="confidentiality-note">
+                    <h4>Confidentiality Notice</h4>
+                    <ul>
+                        <li>This appraisal is anonymous.</li>
+                        <li>Do not indicate your name.</li>
+                        <li>Responses will be consolidated and used solely for staff development and performance improvement.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Submit Button -->
+            <div class="submit-container">
+                <button type="submit" class="submit-btn">Submit Appraisal</button>
+            </div>
+        </form>
+    </div>
+
+    <script src="{{ url_for('static', path='js/script.js') }}"></script>
+</body>
+</html>

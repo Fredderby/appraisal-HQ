@@ -1,0 +1,12 @@
+deeper-life-appraisal/
+├── Dockerfile
+├── main.py
+├── requirements.txt
+├── .env
+├── static/
+│   ├── css/
+│   │   └── style.css
+│   └── js/
+│       └── script.js
+└── templates/
+    └── index.html
