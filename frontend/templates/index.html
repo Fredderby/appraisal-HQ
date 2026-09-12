@@ -36,6 +36,7 @@
         .app-container {
             max-width: 1320px;
             margin: 0 auto;
+            overflow: visible;
         }
 
         /* Header */
@@ -350,26 +351,49 @@
             box-shadow: 0 0 0 4px rgba(15, 76, 129, 0.1);
         }
 
-        /* Confidentiality Note */
-        .note-section {
-            background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
-            border: 1px solid #FCD34D;
-        }
-        .confidentiality-note h4 {
-            color: #92400E;
-            font-size: 1.1rem;
-            margin-bottom: 0.8rem;
+        /* Confidentiality Banner (sticky under header) */
+        .confidential-banner {
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            background: linear-gradient(135deg, #0F4C81 0%, #165D96 100%);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 14px;
+            box-shadow: 0 8px 24px rgba(15, 76, 129, 0.25);
+            padding: 0.75rem 1.25rem;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            justify-content: center;
+            gap: 0.75rem;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 500;
+            letter-spacing: 0.02em;
         }
-        .confidentiality-note h4::before {
-            content: '🔒';
+        .confidential-banner .lock-badge {
+            flex-shrink: 0;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
         }
-        .confidentiality-note ul {
-            padding-left: 1.5rem;
-            color: #78350F;
-            line-height: 1.6;
+        .confidential-banner .confidential-text strong {
+            color: #FCD34D;
+        }
+        @media (max-width: 640px) {
+            .confidential-banner {
+                font-size: 0.8rem;
+                border-radius: 10px;
+                padding: 0.6rem 0.9rem;
+            }
+            .confidential-banner .confidential-text {
+                line-height: 1.4;
+            }
         }
 
         /* Name Autocomplete */
@@ -418,25 +442,36 @@
             margin-top: 1rem;
         }
         .submit-btn {
-            background: linear-gradient(135deg, var(--dclm-blue) 0%, #165D96 100%);
+            background: linear-gradient(135deg, #0F4C81 0%, #165D96 55%, #0E3A66 100%);
             color: white;
-            border: none;
-            padding: 1.2rem 3rem;
-            font-size: 1.15rem;
-            font-weight: 600;
-            border-radius: 14px;
+            border: 2px solid rgba(255,255,255,0.25);
+            padding: 1.15rem 3.75rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+            border-radius: 9999px;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 6px 20px rgba(15, 76, 129, 0.25);
+            box-shadow: 0 10px 30px rgba(15, 76, 129, 0.35), inset 0 1px 0 rgba(255,255,255,0.2);
             position: relative;
             overflow: hidden;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            letter-spacing: 0.02em;
         }
         .submit-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(15, 76, 129, 0.35);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 16px 40px rgba(15, 76, 129, 0.45), inset 0 1px 0 rgba(255,255,255,0.25);
+            border-color: rgba(255,255,255,0.45);
         }
         .submit-btn:active {
-            transform: translateY(0);
+            transform: translateY(0) scale(0.98);
+        }
+        .submit-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
         }
         .submit-btn::before {
             content: '';
@@ -531,6 +566,12 @@
             <h2>360° PEER APPRAISAL FORM</h2>
             <p class="instruction">Please assess your colleague by selecting one option per section. Time to complete: 5–10 minutes.</p>
         </header>
+
+        <!-- Confidentiality Notice (sticky) -->
+        <div class="confidential-banner" role="note">
+            <span class="lock-badge">🔒</span>
+            <span class="confidential-text"><strong>CONFIDENTIAL:</strong> Anonymous appraisal · Do not indicate your name · For staff development only.</span>
+        </div>
 
         <!-- Form Completion Progress Bar -->
         <div class="progress-container">
@@ -719,7 +760,7 @@
                         <span class="radio-dot"></span> Good (70–79%)
                     </label>
                     <label class="radio-option">
-                        <input type="radio" name="communication" value="60-69" checked>
+                        <input type="radio" name="communication" value="60-69">
                         <span class="radio-dot"></span> Fair (60–69%)
                     </label>
                     <label class="radio-option">
@@ -827,21 +868,9 @@
                 </div>
             </section>
 
-            <!-- Confidentiality Note -->
-            <section class="form-section note-section">
-                <div class="confidentiality-note">
-                    <h4>Confidentiality Notice</h4>
-                    <ul>
-                        <li>This appraisal is anonymous.</li>
-                        <li>Do not indicate your name.</li>
-                        <li>Responses will be consolidated and used solely for staff development and performance improvement.</li>
-                    </ul>
-                </div>
-            </section>
-
             <!-- Submit Button + Admin Access -->
             <div class="action-banner">
-                <button type="submit" class="submit-btn" id="submitBtn">Submit Appraisal</button>
+                <button type="submit" class="submit-btn" id="submitBtn">📨 Submit Appraisal</button>
                 <p class="action-hint">Your response is anonymous and saved securely.</p>
                 <div class="admin-access">
                     <a href="/login"><span class="lock">🔒</span> Admin Login</a>
