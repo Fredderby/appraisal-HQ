@@ -53,8 +53,8 @@ def rating_band(midpoint):
 def normalize_name(name):
     if not name:
         return ""
-    collapsed = " ".join(str(name).split())
-    return collapsed.title()
+    # Canonical exact form: trim and collapse internal whitespace, preserve casing
+    return " ".join(str(name).split())
 
 
 def _normalize_user_agent(user_agent):

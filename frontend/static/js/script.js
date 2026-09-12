@@ -151,8 +151,21 @@ document.addEventListener('DOMContentLoaded', function() {
     form.addEventListener('input', updateProgress);
     form.addEventListener('change', updateProgress);
 
-    // ✅ SUBMISSION PROGRESS BAR LOGIC
+    // ✅ SUBMISSION PROGRESS BAR LOGIC — strict canonical name enforcement
     form.addEventListener('submit', function(e) {
+        // Enforce exact canonical staff name (no variants)
+        if (window.STAFF_NAMES && window.STAFF_NAMES.length) {
+            const raw = document.getElementsByName('staff_name')[0].value;
+            const collapsed = raw.trim().split(/\s+/).join(' ');
+            if (!window.STAFF_NAMES.includes(collapsed)) {
+                e.preventDefault();
+                alert('⚠️ Please pick an exact name from the suggestions. Variant spellings are not accepted. Select the highlighted staff name.');
+                const inp = document.getElementById('staff_name');
+                if (inp) { inp.focus(); inp.style.borderColor = '#dc2626'; }
+                window.scrollTo({top: 0, behavior: 'smooth'});
+                return;
+            }
+        }
         // Validate first
         let missing = [];
         requiredFields.forEach(fieldName => {

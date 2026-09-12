@@ -49,17 +49,21 @@ class TestRatingBand(unittest.TestCase):
 
 
 class TestNormalizeName(unittest.TestCase):
-    def test_title_cases_and_collapses_whitespace(self):
+    def test_collapses_whitespace_preserving_case(self):
         self.assertEqual(
             normalize_name("  EVANS amanor  acheampong "),
-            "Evans Amanor Acheampong",
+            "EVANS amanor acheampong",
         )
 
     def test_preserves_abbreviations(self):
-        self.assertEqual(normalize_name("lawrence n.y. amenyo"), "Lawrence N.Y. Amenyo")
+        self.assertEqual(normalize_name("lawrence n.y. amenyo"), "lawrence n.y. amenyo")
 
     def test_handles_apostrophes(self):
-        self.assertEqual(normalize_name("michael adu"), "Michael Adu")
+        self.assertEqual(normalize_name("michael adu"), "michael adu")
+
+    def test_exact_canonical_preserved(self):
+        self.assertEqual(normalize_name("Deborah Otuo Twumasi"), "Deborah Otuo Twumasi")
+        self.assertEqual(normalize_name("Deborah  Otuo   Twumasi"), "Deborah Otuo Twumasi")
 
 
 class TestDeviceFingerprint(unittest.TestCase):

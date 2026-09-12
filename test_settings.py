@@ -77,7 +77,11 @@ class TestStaffNameValidation(unittest.TestCase):
     def test_normalizes_and_validates(self):
         ok, name = validate_staff_name("  eVaNS   amanor ACHEAMPONG ")
         self.assertTrue(ok)
-        self.assertEqual(name, "Evans Amanor Acheampong")
+        self.assertEqual(name, "eVaNS amanor ACHEAMPONG")
+        # canonical exact is preserved — admin must type exact desired casing
+        ok2, name2 = validate_staff_name("Deborah Otuo Twumasi")
+        self.assertTrue(ok2)
+        self.assertEqual(name2, "Deborah Otuo Twumasi")
 
     def test_rejects_empty(self):
         ok, _ = validate_staff_name("   ")
