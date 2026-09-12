@@ -200,6 +200,73 @@ def ensure_schema(conn):
             except Error as e:
                 logger.warning(f"⚠️  Could not create unique index: {e}")
 
+        # Backfill staff_id for historical appraisals (no data pulling fix)
+        try:
+            cursor.execute("SELECT id, name FROM staff_names")
+            staff_rows = list(cursor.fetchall())  # tuples (id, name)
+            # build normalized map
+            norm_to_id = {}
+            for sid, sname in staff_rows:
+                try:
+                    norm_to_id[normalize_name(sname)] = sid
+                except Exception:
+                    norm_to_id[str(sname).strip()] = sid
+            cursor.execute("SELECT id, staff_name FROM appraisals WHERE staff_id IS NULL")
+            orphan_rows = cursor.fetchall()
+            updates = []
+            for app_id, staff_name in orphan_rows:
+                if not staff_name:
+                    continue
+                key = normalize_name(staff_name)
+                sid = norm_to_id.get(key)
+                if not sid:
+                    # create missing staff entry for orphan name
+                    canonical = " ".join(str(staff_name).split())
+                    if not canonical:
+                        continue
+                    # avoid duplicate — check case-insensitive via DB collation
+                    cursor.execute(
+                        "SELECT id FROM staff_names WHERE LOWER(name) = LOWER(%s) LIMIT 1",
+                        (canonical,),
+                    )
+                    existing = cursor.fetchone()
+                    if existing:
+                        sid = existing[0]
+                        # also update maps for future orphans with same name
+                        norm_to_id[normalize_name(canonical)] = sid
+                        norm_to_id[canonical.lower()] = sid
+                    else:
+                        new_id = str(uuid.uuid4())
+                        try:
+                            cursor.execute(
+                                "INSERT INTO staff_names (id, name) VALUES (%s, %s)",
+                                (new_id, canonical),
+                            )
+                            logger.info(f"✅ Created missing staff '{canonical}' for orphan appraisal")
+                            staff_rows.append((new_id, canonical))
+                            norm_to_id[normalize_name(canonical)] = new_id
+                            sid = new_id
+                        except Error as e:
+                            # race fallback: fetch existing
+                            cursor.execute(
+                                "SELECT id FROM staff_names WHERE LOWER(name) = LOWER(%s) LIMIT 1",
+                                (canonical,),
+                            )
+                            row = cursor.fetchone()
+                            if row:
+                                sid = row[0]
+                            else:
+                                logger.warning(f"could not create staff {canonical}: {e}")
+                                continue
+                if sid:
+                    updates.append((sid, app_id))
+            for sid, aid in updates:
+                cursor.execute("UPDATE appraisals SET staff_id=%s WHERE id=%s", (sid, aid))
+            if updates:
+                logger.info(f"✅ Backfilled staff_id for {len(updates)} appraisals")
+        except Exception as e:
+            logger.warning(f"staff_id backfill failed: {e}")
+
     conn.commit()
 
 
@@ -652,9 +719,10 @@ async def staff_breakdown(request: Request, staff_id: str):
         staff = cursor.fetchone()
         if not staff:
             raise HTTPException(status_code=404, detail="Staff member not found")
+        # defense-in-depth: include historical rows where staff_id is NULL but staff_name matches
         cursor.execute(
-            "SELECT * FROM appraisals WHERE staff_id = %s ORDER BY created_at ASC",
-            (staff_id,),
+            "SELECT * FROM appraisals WHERE staff_id = %s OR staff_name = %s ORDER BY created_at ASC",
+            (staff_id, staff["name"]),
         )
         rows = cursor.fetchall()
         stats = compute_staff_stats(rows)
