@@ -105,12 +105,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (nt.indexOf(qt) !== -1 || qt.indexOf(nt) !== -1) { best = 0; break; }
                     var d = levenshtein(qt, nt);
                     var thr = qt.length <= 4 ? 1 : 2;
-                    if (d <= thr && d < best) best = d;
-                    // also try prefix of longer token
-                    if (nt.length > qt.length) {
-                        var d2 = levenshtein(qt, nt.substring(0, qt.length));
-                        if (d2 < best) best = d2;
-                    }
+                    // first-letter must match to avoid false positives like larbi->lawrence
+                    if (qt[0] !== nt[0]) { /* skip fuzzy if first char differs */ }
+                    else if (d <= thr && d < best) best = d;
                 }
                 if (best === 99) return {match: false, score: 99};
                 total += best;
@@ -163,10 +160,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (fm.match) scored.push({name: n, score: fm.score});
             }
             scored.sort(function(a,b){ return a.score - b.score; });
-            var matches = scored.slice(0, 8).map(function(s){ return s.name; });
+            var matches = scored.slice(0, 20).map(function(s){ return s.name; });
             // fallback to exact substring if fuzzy found nothing (should not happen)
             if (!matches.length) {
-                matches = window.STAFF_NAMES.filter(function(n){ return n.toLowerCase().indexOf(query) !== -1; }).slice(0,8);
+                matches = window.STAFF_NAMES.filter(function(n){ return n.toLowerCase().indexOf(query) !== -1; }).slice(0,20);
             }
             showSuggestions(matches);
         }
