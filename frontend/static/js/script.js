@@ -57,8 +57,54 @@ document.addEventListener('DOMContentLoaded', function() {
             activeIndex = -1;
         }
 
+        // --- powerful fuzzy search helpers
+        function levenshtein(a, b) {
+            var al = a.length, bl = b.length;
+            if (al === 0) return bl;
+            if (bl === 0) return al;
+            var dp = Array(al + 1);
+            for (var i = 0; i <= al; i++) dp[i] = i;
+            for (var j = 1; j <= bl; j++) {
+                var prev = dp[0]; dp[0] = j;
+                for (var i = 1; i <= al; i++) {
+                    var tmp = dp[i];
+                    dp[i] = a.charAt(i - 1) === b.charAt(j - 1) ? prev : Math.min(prev + 1, dp[i] + 1, dp[i - 1] + 1);
+                    prev = tmp;
+                }
+            }
+            return dp[al];
+        }
+        function fuzzyMatch(name, query) {
+            var n = name.toLowerCase();
+            var q = query.toLowerCase().trim();
+            if (!q) return {match: false, score: 99};
+            if (n.indexOf(q) !== -1) return {match: true, score: 0};
+            var qTokens = q.split(/\s+/);
+            var nTokens = n.split(/\s+/);
+            var total = 0;
+            for (var qi = 0; qi < qTokens.length; qi++) {
+                var qt = qTokens[qi];
+                var best = 99;
+                for (var ni = 0; ni < nTokens.length; ni++) {
+                    var nt = nTokens[ni];
+                    if (nt.indexOf(qt) !== -1 || qt.indexOf(nt) !== -1) { best = 0; break; }
+                    var d = levenshtein(qt, nt);
+                    var thr = qt.length <= 4 ? 1 : 2;
+                    if (d <= thr && d < best) best = d;
+                    // also try prefix of longer token
+                    if (nt.length > qt.length) {
+                        var d2 = levenshtein(qt, nt.substring(0, qt.length));
+                        if (d2 < best) best = d2;
+                    }
+                }
+                if (best === 99) return {match: false, score: 99};
+                total += best;
+            }
+            return {match: true, score: total};
+        }
+
         nameInput.addEventListener('input', function() {
-            const query = nameInput.value.trim().toLowerCase();
+            var query = nameInput.value.trim().toLowerCase();
             hideOnFocusName(query);
         });
 
@@ -67,9 +113,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 suggestionsBox.classList.add('hidden');
                 return;
             }
-            const matches = window.STAFF_NAMES.filter(function(n) {
-                return n.toLowerCase().indexOf(query) !== -1;
-            }).slice(0, 8);
+            var scored = [];
+            for (var i = 0; i < window.STAFF_NAMES.length; i++) {
+                var n = window.STAFF_NAMES[i];
+                var fm = fuzzyMatch(n, query);
+                if (fm.match) scored.push({name: n, score: fm.score});
+            }
+            scored.sort(function(a,b){ return a.score - b.score; });
+            var matches = scored.slice(0, 8).map(function(s){ return s.name; });
+            // fallback to exact substring if fuzzy found nothing (should not happen)
+            if (!matches.length) {
+                matches = window.STAFF_NAMES.filter(function(n){ return n.toLowerCase().indexOf(query) !== -1; }).slice(0,8);
+            }
             showSuggestions(matches);
         }
 
