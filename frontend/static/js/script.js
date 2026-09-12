@@ -107,10 +107,22 @@ document.addEventListener('DOMContentLoaded', function() {
             var query = nameInput.value.trim().toLowerCase();
             hideOnFocusName(query);
         });
+        // show all names on focus/click so every DB name is a potential pop-up
+        nameInput.addEventListener('focus', function() {
+            var q = nameInput.value.trim().toLowerCase();
+            if (!q) showSuggestions(window.STAFF_NAMES.slice(0, 8));
+            else hideOnFocusName(q);
+        });
+        nameInput.addEventListener('click', function() {
+            var q = nameInput.value.trim().toLowerCase();
+            if (!q && suggestionsBox.classList.contains('hidden')) {
+                showSuggestions(window.STAFF_NAMES.slice(0, 8));
+            }
+        });
 
         function hideOnFocusName(query) {
             if (!query) {
-                suggestionsBox.classList.add('hidden');
+                showSuggestions(window.STAFF_NAMES.slice(0, 8));
                 return;
             }
             var scored = [];
