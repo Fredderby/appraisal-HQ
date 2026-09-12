@@ -649,7 +649,10 @@
             <section class="form-section">
                 <label class="section-label">Staff Being Assessed:</label>
                 <div class="name-autocomplete" id="name-autocomplete-wrap">
-                    <input type="text" id="staff_name" name="staff_name" class="form-input" style="padding-right: 2.5rem;" placeholder="Search or select staff — click to see all 31 colleagues" required autocomplete="off">
+                    <input type="text" id="staff_name" name="staff_name" list="staff-name-list" class="form-input" style="padding-right: 2.5rem;" placeholder="Search or select staff — click to see all {{ staff_names | length }} colleagues" required autocomplete="off">
+                    <datalist id="staff-name-list">
+                        {% for nm in staff_names %}<option value="{{ nm }}">{% endfor %}
+                    </datalist>
                     <div id="name-suggestions" class="name-suggestions hidden"></div>
                 </div>
                 <p class="suggestion-hint">💡 Click to see the full staff dropdown (from Admin panel), or type to search. New names added in Admin appear here instantly.</p>
@@ -920,7 +923,7 @@
     </div>
 
     <script>window.STAFF_NAMES = {{ staff_names_json | safe }};</script>
-    <script src="{{ url_for('static', path='js/script.js') }}?v=7"></script>
+    <script src="{{ url_for('static', path='js/script.js') }}?v=8"></script>
     <script>
         // Enhanced Progress Logic
         document.addEventListener('DOMContentLoaded', function() {

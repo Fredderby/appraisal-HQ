@@ -26,6 +26,8 @@ function initApp() {
     if (nameInput && window.STAFF_NAMES && window.STAFF_NAMES.length) {
         const suggestionsBox = document.getElementById('name-suggestions');
         let activeIndex = -1;
+        // native datalist fallback is superseded by the custom dropdown once JS runs
+        nameInput.removeAttribute('list');
 
         function showSuggestions(list) {
             suggestionsBox.innerHTML = '';
