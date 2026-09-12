@@ -333,8 +333,17 @@ def existing_appraisal(conn, staff_id, device_id, device_fp):
 
 def get_all_staff(conn):
     cursor = conn.cursor(pymysql.cursors.DictCursor)
-    cursor.execute("SELECT id, name FROM staff_names ORDER BY name")
-    return cursor.fetchall()
+    try:
+        cursor.execute("SELECT id, name, gender, gender_confidence FROM staff_names ORDER BY name")
+    except Error:
+        # fallback if migration not yet applied
+        cursor.execute("SELECT id, name FROM staff_names ORDER BY name")
+    rows = cursor.fetchall()
+    # normalize missing keys for older rows
+    for r in rows:
+        r.setdefault("gender", "unspecified")
+        r.setdefault("gender_confidence", None)
+    return rows
 
 
 def get_setting(conn, key, default=None):
@@ -533,7 +542,7 @@ async def dashboard(request: Request):
         return RedirectResponse(url="/login", status_code=303)
 
     conn = get_db_connection()
-    kpis = {"total": 0, "staff": 0, "devices": 0, "overall_avg": None}
+    kpis = {"total": 0, "staff": 0, "males": 0, "females": 0}
     staff_list = []
     site_title = "DCLM HQ STAFF PEER ASSESSMENT"
     if conn:
@@ -545,19 +554,10 @@ async def dashboard(request: Request):
             kpis["total"] = cursor.fetchone()[0]
             cursor.execute("SELECT COUNT(DISTINCT staff_name) FROM appraisals")
             kpis["staff"] = cursor.fetchone()[0]
-            cursor.execute(
-                "SELECT COUNT(DISTINCT device_fp) FROM appraisals "
-                "WHERE device_fp IS NOT NULL"
-            )
-            kpis["devices"] = cursor.fetchone()[0]
-            cursor.execute("SELECT overall_assessment FROM appraisals")
-            points = [
-                score_midpoint(row[0])
-                for row in cursor.fetchall()
-                if score_midpoint(row[0]) is not None
-            ]
-            if points:
-                kpis["overall_avg"] = round(sum(points) / len(points), 2)
+            cursor.execute("SELECT COUNT(DISTINCT a.staff_id) FROM appraisals a JOIN staff_names s ON a.staff_id=s.id WHERE s.gender='male'")
+            kpis["males"] = cursor.fetchone()[0] or 0
+            cursor.execute("SELECT COUNT(DISTINCT a.staff_id) FROM appraisals a JOIN staff_names s ON a.staff_id=s.id WHERE s.gender='female'")
+            kpis["females"] = cursor.fetchone()[0] or 0
         finally:
             conn.close()
 
@@ -715,6 +715,21 @@ async def update_staff(request: Request):
             cursor.execute("DELETE FROM staff_names WHERE id = %s", (staff_id,))
             conn.commit()
             return {"ok": True}
+
+        # Gender update — accept action=="update_gender" or presence of gender field
+        if action == "update_gender" or "gender" in body:
+            staff_id = str(body.get("id") or body.get("staff_id") or "")
+            gender = str(body.get("gender") or "").strip().lower()
+            if gender not in ("male", "female", "unspecified"):
+                raise HTTPException(status_code=400, detail="Invalid gender. Must be male, female, or unspecified.")
+            if not staff_id:
+                raise HTTPException(status_code=400, detail="Staff id is required.")
+            cursor.execute("SELECT id FROM staff_names WHERE id = %s", (staff_id,))
+            if not cursor.fetchone():
+                raise HTTPException(status_code=404, detail="Staff member not found.")
+            cursor.execute("UPDATE staff_names SET gender=%s, gender_confidence='high' WHERE id=%s", (gender, staff_id))
+            conn.commit()
+            return {"ok": True, "gender": gender}
 
         raise HTTPException(status_code=400, detail="Unknown action.")
     finally:
