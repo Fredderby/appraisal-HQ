@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+function initApp() {
     // ✅ DEVICE ID — stable per-browser so the same device cannot appraise the same person twice
     function getOrCreateDeviceId() {
         let id = localStorage.getItem('dclm_device_id');
@@ -311,4 +311,5 @@ document.addEventListener('DOMContentLoaded', function() {
             section.style.backgroundColor = '#f0f4f8';
         });
     });
-});
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initApp); else initApp();

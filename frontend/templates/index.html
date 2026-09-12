@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        .hidden { display: none !important; }
         :root {
             --dclm-blue: #0F4C81;
             --dclm-gold: #D4AF37;
@@ -919,7 +920,7 @@
     </div>
 
     <script>window.STAFF_NAMES = {{ staff_names_json | safe }};</script>
-    <script src="{{ url_for('static', path='js/script.js') }}?v=6"></script>
+    <script src="{{ url_for('static', path='js/script.js') }}?v=7"></script>
     <script>
         // Enhanced Progress Logic
         document.addEventListener('DOMContentLoaded', function() {
