@@ -267,6 +267,37 @@ def ensure_schema(conn):
         except Exception as e:
             logger.warning(f"staff_id backfill failed: {e}")
 
+        # Gender columns + Isaac fix + backfill (Task 2)
+        cursor.execute("SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='staff_names' AND COLUMN_NAME='gender'")
+        if not cursor.fetchone():
+            cursor.execute("ALTER TABLE staff_names ADD COLUMN gender ENUM('male','female','unspecified') DEFAULT 'unspecified'")
+            cursor.execute("ALTER TABLE staff_names ADD COLUMN gender_confidence ENUM('high','medium','low') DEFAULT NULL")
+        else:
+            cursor.execute("SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='staff_names' AND COLUMN_NAME='gender_confidence'")
+            if not cursor.fetchone():
+                cursor.execute("ALTER TABLE staff_names ADD COLUMN gender_confidence ENUM('high','medium','low') DEFAULT NULL")
+        # Isaac fix
+        cursor.execute("SELECT id FROM staff_names WHERE name=%s", ("Isaac Adjie ( Accounts)",))
+        row=cursor.fetchone()
+        if row:
+            dup_id=row[0]
+            cursor.execute("SELECT id FROM staff_names WHERE LOWER(name)=LOWER(%s) AND id<>%s", ("Isaac Adjei", dup_id))
+            dup2=cursor.fetchone()
+            if dup2:
+                cursor.execute("UPDATE appraisals SET staff_id=%s WHERE staff_id=%s", (dup2[0], dup_id))
+                cursor.execute("DELETE FROM staff_names WHERE id=%s", (dup_id,))
+            else:
+                cursor.execute("UPDATE staff_names SET name=%s WHERE id=%s", ("Isaac Adjei", dup_id))
+        # backfill genders
+        try:
+            from gender_detect import detect_gender
+            cursor.execute("SELECT id, name, gender FROM staff_names WHERE gender='unspecified' OR gender IS NULL")
+            for sid, name, g in list(cursor.fetchall()):
+                ng, conf = detect_gender(name)
+                cursor.execute("UPDATE staff_names SET gender=%s, gender_confidence=%s WHERE id=%s", (ng, conf, sid))
+        except Exception as e:
+            logger.warning(f"gender backfill failed: {e}")
+
     conn.commit()
 
 
