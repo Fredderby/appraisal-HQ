@@ -1,5 +1,5 @@
-FEMALE_STRONG = {"deborah","mabel","judith","ruth","winifred","victoria","precious","miracle","happy","majesty","marcel"}
-MALE_STRONG = {"daniel","emmanuel","eric","evans","frank","frederick","george","goka","harry","joseph","lawrence","marcel","michael","richard","yaw","jonas","isaac","harry"}
+FEMALE_STRONG = {"deborah","mabel","judith","ruth","winifred","victoria","precious","miracle","happy","majesty"}
+MALE_STRONG = {"daniel","emmanuel","eric","evans","frank","frederick","george","goka","harry","joseph","lawrence","marcel","michael","richard","yaw","jonas","isaac"}
 def detect_gender(name: str):
     import re
     if not name: return ("unspecified","low")
