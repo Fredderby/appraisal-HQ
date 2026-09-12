@@ -666,10 +666,27 @@ async def update_staff(request: Request):
                 raise HTTPException(status_code=400, detail=name)
             if find_staff_member(conn, name):
                 raise HTTPException(status_code=400, detail=f"{name} already exists.")
-            cursor.execute(
-                "INSERT INTO staff_names (id, name) VALUES (%s, %s)",
-                (str(uuid.uuid4()), name),
-            )
+            # auto-detect gender if not explicitly provided
+            gender_val = str(body.get("gender") or "").strip().lower() if body.get("gender") else None
+            if gender_val in ("male", "female", "unspecified"):
+                ng, conf = gender_val, "high"
+            else:
+                try:
+                    from gender_detect import detect_gender
+                    ng, conf = detect_gender(name)
+                except Exception:
+                    ng, conf = "unspecified", "low"
+            try:
+                cursor.execute(
+                    "INSERT INTO staff_names (id, name, gender, gender_confidence) VALUES (%s, %s, %s, %s)",
+                    (str(uuid.uuid4()), name, ng, conf),
+                )
+            except Error:
+                # fallback if gender columns not yet migrated
+                cursor.execute(
+                    "INSERT INTO staff_names (id, name) VALUES (%s, %s)",
+                    (str(uuid.uuid4()), name),
+                )
             conn.commit()
             return {"ok": True, "name": name}
 

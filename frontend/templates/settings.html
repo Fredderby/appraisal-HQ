@@ -6,85 +6,109 @@
     <title>Settings — DCLM Appraisal</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>body{font-family:'Roboto',sans-serif;}</style>
 </head>
-<body class="min-h-screen bg-gradient-to-br from-blue-50 to-sky-50">
+<body class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-sky-50">
     <div class="max-w-4xl mx-auto p-4 md:p-6">
 
-        <header class="bg-gradient-to-r from-[#0F4C81] to-[#165D96] text-white rounded-2xl shadow-lg px-5 py-4 md:px-8 md:py-6 mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <header class="bg-gradient-to-r from-[#0F4C81] to-[#165D96] text-white rounded-2xl shadow-lg px-5 py-4 md:px-8 md:py-6 mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b-4 border-[#C9A86A]">
             <div>
-                <h1 class="text-xl md:text-2xl font-bold">Admin Settings</h1>
-                <p class="text-sm opacity-90 mt-1">Manage login, site title and the staff list</p>
+                <h1 class="text-xl md:text-2xl font-bold tracking-tight">Admin Settings</h1>
+                <p class="text-sm opacity-90 mt-1 font-light">Manage login, site title and the staff list</p>
             </div>
             <div class="flex items-center gap-3">
-                <a href="/dashboard" class="text-sm bg-white text-[#0F4C81] font-semibold px-4 py-2 rounded-lg hover:bg-blue-50 transition">← Dashboard</a>
-                <a href="/logout" class="text-sm bg-red-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-red-600 transition">Logout</a>
+                <a href="/dashboard" class="text-sm bg-white text-[#0F4C81] font-semibold px-4 py-2 rounded-xl hover:bg-blue-50 transition shadow-sm">← Dashboard</a>
+                <a href="/logout" class="text-sm bg-red-500 text-white font-semibold px-4 py-2 rounded-xl hover:bg-red-600 transition shadow-sm">Logout</a>
             </div>
         </header>
 
         <div id="toast" class="hidden fixed top-4 right-4 z-50 px-5 py-3 rounded-lg shadow-lg text-white text-sm font-semibold"></div>
 
         <!-- Login Credentials -->
-        <div class="bg-white rounded-2xl shadow p-5 md:p-6 mb-6 border border-gray-100">
-            <h2 class="text-lg font-bold text-[#0F4C81] mb-4">Login Credentials</h2>
+        <div class="bg-white rounded-2xl shadow-sm p-5 md:p-6 mb-6 border border-gray-100 border-t-4 border-[#C9A86A] hover:shadow-md transition-shadow">
+            <h2 class="text-lg font-bold text-[#0F4C81] mb-4 tracking-tight">Login Credentials</h2>
             <form id="credentials-form" class="space-y-4">
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1">Current Username</label>
-                    <input type="text" id="current-username" value="{{ admin_username }}" disabled class="w-full px-4 py-3 border-2 border-gray-100 bg-gray-50 rounded-lg text-gray-600 font-mono text-sm">
+                    <input type="text" id="current-username" value="{{ admin_username }}" disabled class="w-full px-4 py-3 border-2 border-gray-100 bg-gray-50 rounded-xl text-gray-600 font-mono text-sm">
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1">New Username <span class="text-gray-400 font-normal">(optional)</span></label>
-                    <input type="text" id="username" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-[#0F4C81] focus:outline-none" placeholder="Leave blank to keep current username">
+                    <input type="text" id="username" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#0F4C81] focus:outline-none" placeholder="Leave blank to keep current username">
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1">Current Password <span class="text-red-500">*</span></label>
-                    <input type="password" id="current-password" required autocomplete="current-password" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-[#0F4C81] focus:outline-none" placeholder="Required to save any change">
+                    <input type="password" id="current-password" required autocomplete="current-password" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#0F4C81] focus:outline-none" placeholder="Required to save any change">
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-1">New Password <span class="text-gray-400 font-normal">(optional, min 8)</span></label>
-                        <input type="password" id="new-password" autocomplete="new-password" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-[#0F4C81] focus:outline-none" placeholder="Leave blank to keep">
+                        <input type="password" id="new-password" autocomplete="new-password" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#0F4C81] focus:outline-none" placeholder="Leave blank to keep">
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-1">Confirm New Password</label>
-                        <input type="password" id="confirm-password" autocomplete="new-password" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-[#0F4C81] focus:outline-none">
+                        <input type="password" id="confirm-password" autocomplete="new-password" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#0F4C81] focus:outline-none">
                     </div>
                 </div>
-                <button type="submit" class="bg-gradient-to-r from-[#0F4C81] to-[#165D96] text-white font-semibold px-6 py-3 rounded-lg hover:opacity-95 transition">Save Credentials</button>
+                <button type="submit" class="bg-gradient-to-r from-[#0F4C81] to-[#165D96] text-white font-semibold px-6 py-3 rounded-xl hover:opacity-95 transition shadow-sm">Save Credentials</button>
             </form>
         </div>
 
         <!-- Site Title -->
-        <div class="bg-white rounded-2xl shadow p-5 md:p-6 mb-6 border border-gray-100">
-            <h2 class="text-lg font-bold text-[#0F4C81] mb-4">App Title</h2>
+        <div class="bg-white rounded-2xl shadow-sm p-5 md:p-6 mb-6 border border-gray-100 border-t-4 border-[#C9A86A] hover:shadow-md transition-shadow">
+            <h2 class="text-lg font-bold text-[#0F4C81] mb-4 tracking-tight">App Title</h2>
             <p class="text-sm text-gray-500 mb-3">Shown in the header of the appraisal form and dashboard.</p>
             <form id="site-form" class="flex flex-col md:flex-row gap-3">
-                <input type="text" id="site-title" value="{{ site_title }}" class="flex-1 px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-[#0F4C81] focus:outline-none">
-                <button type="submit" class="bg-gradient-to-r from-[#0F4C81] to-[#165D96] text-white font-semibold px-6 py-3 rounded-lg hover:opacity-95 transition">Save Title</button>
+                <input type="text" id="site-title" value="{{ site_title }}" class="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#0F4C81] focus:outline-none">
+                <button type="submit" class="bg-gradient-to-r from-[#0F4C81] to-[#165D96] text-white font-semibold px-6 py-3 rounded-xl hover:opacity-95 transition shadow-sm">Save Title</button>
             </form>
         </div>
 
         <!-- Staff List -->
-        <div class="bg-white rounded-2xl shadow p-5 md:p-6 border border-gray-100">
-            <h2 class="text-lg font-bold text-[#0F4C81] mb-1">Staff List</h2>
+        <div class="bg-white rounded-2xl shadow-sm p-5 md:p-6 border border-gray-100 border-t-4 border-[#C9A86A] hover:shadow-md transition-shadow">
+            <h2 class="text-lg font-bold text-[#0F4C81] mb-1 tracking-tight">Staff List</h2>
             <p class="text-sm text-gray-500 mb-4">Used for the name suggestions on the appraisal form. A staff member with appraisals cannot be deleted.</p>
 
             <form id="add-staff-form" class="flex flex-col md:flex-row gap-3 mb-6">
-                <input type="text" id="add-staff-name" class="flex-1 px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-[#0F4C81] focus:outline-none" placeholder="Full name of new staff member">
-                <button type="submit" class="bg-emerald-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-emerald-700 transition">Add Staff</button>
+                <input type="text" id="add-staff-name" class="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#0F4C81] focus:outline-none" placeholder="Full name of new staff member">
+                <button type="submit" class="bg-emerald-600 text-white font-semibold px-6 py-3 rounded-xl hover:bg-emerald-700 transition shadow-sm">Add Staff</button>
             </form>
 
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm border-collapse min-w-[400px]">
+            <div class="overflow-x-auto rounded-xl border border-gray-100">
+                <table class="w-full text-sm border-collapse min-w-[560px]">
                     <thead>
-                        <tr class="bg-gray-50 text-gray-600">
-                            <th class="text-left px-3 py-2 font-semibold">Name</th>
-                            <th class="px-3 py-2 font-semibold text-right">Actions</th>
+                        <tr class="bg-[#0F4C81]/5 text-[#0F4C81]">
+                            <th class="text-left px-3 py-3 font-semibold">Name</th>
+                            <th class="px-3 py-3 font-semibold text-center">Gender</th>
+                            <th class="px-3 py-3 font-semibold text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="staff-rows">
                         {% for s in staff_list %}
-                        <tr class="border-b border-gray-100" data-id="{{ s.id }}">
-                            <td class="px-3 py-2 text-gray-700">{{ s.name }}</td>
+                        <tr class="border-b border-gray-100 hover:bg-gray-50/50 transition" data-id="{{ s.id }}">
+                            <td class="px-3 py-3 text-gray-700 font-medium">{{ s.name }}</td>
+                            <td class="px-3 py-3 text-center whitespace-nowrap">
+                                {% if s.gender == 'male' %}
+                                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border bg-blue-50 text-blue-700 border-blue-200">♂ Male</span>
+                                {% elif s.gender == 'female' %}
+                                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border bg-pink-50 text-pink-600 border-pink-200">♀ Female</span>
+                                {% else %}
+                                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border bg-gray-100 text-gray-500 border-gray-200">– Unspecified</span>
+                                {% endif %}
+                                {% if s.gender != 'unspecified' and s.gender_confidence != 'high' %}
+                                <span class="ml-2 inline-flex items-center px-2 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-700 border border-amber-200">Confirm</span>
+                                <select class="gender-select ml-1 px-2 py-1 border-2 border-amber-300 rounded-lg text-xs bg-white focus:border-amber-500 focus:outline-none" data-id="{{ s.id }}">
+                                    <option value="male" {% if s.gender == 'male' %}selected{% endif %}>Male</option>
+                                    <option value="female" {% if s.gender == 'female' %}selected{% endif %}>Female</option>
+                                </select>
+                                {% elif s.gender == 'unspecified' %}
+                                <select class="gender-select ml-2 px-2 py-1 border-2 border-gray-200 rounded-lg text-xs bg-white focus:border-[#0F4C81] focus:outline-none" data-id="{{ s.id }}">
+                                    <option value="" disabled selected>Set gender</option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                </select>
+                                {% endif %}
+                            </td>
                             <td class="px-3 py-2 text-right whitespace-nowrap">
                                 <button class="rename-btn text-[#0F4C81] font-semibold hover:underline px-2">Rename</button>
                                 <button class="delete-btn text-red-500 font-semibold hover:underline px-2">Delete</button>
@@ -133,9 +157,6 @@
             document.getElementById('new-password').value = '';
             document.getElementById('confirm-password').value = '';
             document.getElementById('current-password').value = '';
-            const stored = document.getElementById('username');
-            const uname = document.getElementById('current-username');
-            if (document.getElementById('username').value) { uname.value = document.getElementById('username').value; }
         } catch (err) { showToast('❌ ' + err.message, true); }
     });
 
@@ -181,6 +202,23 @@
                 location.reload();
             } catch (err) { showToast('❌ ' + err.message, true); }
         }
+    });
+
+    // Gender confirm select — POST update_gender
+    document.getElementById('staff-rows').addEventListener('change', async function (e) {
+        const sel = e.target.closest('.gender-select');
+        if (!sel) return;
+        const id = sel.dataset.id;
+        const gender = sel.value;
+        if (!gender) return;
+        try {
+            await postJson('/api/settings/staff', { id: id, action: 'update_gender', gender: gender });
+            showToast('✅ Gender updated to ' + gender + '.');
+            // Update pill optimistically without reload
+            const pillCell = sel.closest('td');
+            // simple reload to reflect confidence high
+            location.reload();
+        } catch (err) { showToast('❌ ' + err.message, true); }
     });
     </script>
 </body>
