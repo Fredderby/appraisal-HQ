@@ -17,7 +17,18 @@ import logging
 import pymysql
 from pymysql import Error, IntegrityError
 
-from core import compute_staff_stats, device_fingerprint, normalize_name, score_midpoint
+from core import (
+    compute_staff_stats,
+    device_fingerprint,
+    normalize_name,
+    score_midpoint,
+    hash_password,
+    verify_password,
+    validate_username,
+    validate_password,
+    validate_site_title,
+    validate_staff_name,
+)
 from staff_seed import STAFF_NAMES
 
 logging.basicConfig(level=logging.INFO)
@@ -142,6 +153,28 @@ def ensure_schema(conn):
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
         """)
 
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS admin_settings (
+            setting_key VARCHAR(64) PRIMARY KEY,
+            setting_value TEXT NOT NULL,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        """)
+
+        cursor.execute("SELECT COUNT(*) AS c FROM admin_settings")
+        if cursor.fetchone()[0] == 0:
+            seed = {
+                "admin_username": os.getenv("ADMIN_USERNAME", "admin"),
+                "admin_password": hash_password(os.getenv("ADMIN_PASSWORD", "admin")),
+                "site_title": os.getenv("APP_TITLE", "DCLM HQ STAFF PEER ASSESSMENT"),
+            }
+            for key, value in seed.items():
+                cursor.execute(
+                    "INSERT INTO admin_settings (setting_key, setting_value) VALUES (%s, %s)",
+                    (key, value),
+                )
+            logger.info("✅ Seeded admin settings")
+
         cursor.execute(
             "SELECT COLUMN_NAME FROM information_schema.COLUMNS "
             "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'appraisals'"
@@ -206,11 +239,33 @@ def get_all_staff(conn):
     return cursor.fetchall()
 
 
-def staff_context(conn):
+def get_setting(conn, key, default=None):
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT setting_value FROM admin_settings WHERE setting_key = %s",
+        (key,),
+    )
+    row = cursor.fetchone()
+    return row[0] if row else default
+
+
+def set_setting(conn, key, value):
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO admin_settings (setting_key, setting_value) VALUES (%s, %s) "
+        "ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)",
+        (key, value),
+    )
+    conn.commit()
+
+
+def base_context(conn):
     rows = get_all_staff(conn) if conn else []
+    names = [row["name"] for row in rows]
     return {
-        "staff_names": [row["name"] for row in rows],
-        "staff_names_json": json.dumps([row["name"] for row in rows]),
+        "staff_names": names,
+        "staff_names_json": json.dumps(names),
+        "site_title": get_setting(conn, "site_title", "DCLM HQ STAFF PEER ASSESSMENT"),
     }
 
 
@@ -233,7 +288,7 @@ async def form(request: Request):
             {"error": "❌ Database connection failed — please try again later."},
         )
     try:
-        return render_template("index.html", request, staff_context(conn))
+        return render_template("index.html", request, base_context(conn))
     finally:
         conn.close()
 
@@ -274,7 +329,7 @@ async def submit(
         )
 
     try:
-        ctx = staff_context(conn)
+        ctx = base_context(conn)
         staff = find_staff_member(conn, staff_name)
         if not staff:
             ctx["error"] = (
@@ -316,7 +371,7 @@ async def submit(
         return render_template("index.html", request, ctx)
     except IntegrityError as e:
         conn.rollback()
-        ctx = staff_context(conn)
+        ctx = base_context(conn)
         if "uq_appraisals_device_staff" in str(e):
             ctx["error"] = (
                 "⚠️ You have already submitted an appraisal for this staff member "
@@ -341,7 +396,28 @@ async def login(
     username: str = Form(...),
     password: str = Form(...),
 ):
-    if hmac.compare_digest(username, ADMIN_USERNAME) and hmac.compare_digest(password, ADMIN_PASSWORD):
+    valid_auth = False
+    conn = get_db_connection()
+    if conn:
+        try:
+            stored_user = get_setting(conn, "admin_username", ADMIN_USERNAME)
+            stored_hash = get_setting(conn, "admin_password", "")
+            if stored_hash and verify_password(password, stored_hash):
+                valid_auth = hmac.compare_digest(username, stored_user)
+            elif not stored_hash:
+                valid_auth = (
+                    hmac.compare_digest(username, ADMIN_USERNAME)
+                    and hmac.compare_digest(password, ADMIN_PASSWORD)
+                )
+        finally:
+            conn.close()
+    else:
+        valid_auth = (
+            hmac.compare_digest(username, ADMIN_USERNAME)
+            and hmac.compare_digest(password, ADMIN_PASSWORD)
+        )
+
+    if valid_auth:
         request.session["admin"] = True
         return RedirectResponse(url="/dashboard", status_code=303)
     return render_template("login.html", request, {"error": "❌ Invalid username or password"})
@@ -361,8 +437,10 @@ async def dashboard(request: Request):
     conn = get_db_connection()
     kpis = {"total": 0, "staff": 0, "devices": 0, "overall_avg": None}
     staff_list = []
+    site_title = "DCLM HQ STAFF PEER ASSESSMENT"
     if conn:
         try:
+            site_title = get_setting(conn, "site_title", site_title)
             staff_list = get_all_staff(conn)
             cursor = conn.cursor()
             cursor.execute("SELECT COUNT(*) FROM appraisals")
@@ -388,8 +466,161 @@ async def dashboard(request: Request):
     return render_template(
         "dashboard.html",
         request,
-        {"staff_list": staff_list, "kpis": kpis},
+        {"staff_list": staff_list, "kpis": kpis, "site_title": site_title},
     )
+
+
+@app.get("/settings", response_class=HTMLResponse)
+async def settings_page(request: Request):
+    if not is_admin(request):
+        return RedirectResponse(url="/login", status_code=303)
+    conn = get_db_connection()
+    context = {
+        "admin_username": ADMIN_USERNAME,
+        "site_title": "DCLM HQ STAFF PEER ASSESSMENT",
+        "staff_list": [],
+    }
+    if conn:
+        try:
+            context["admin_username"] = get_setting(conn, "admin_username", ADMIN_USERNAME)
+            context["site_title"] = get_setting(conn, "site_title", "DCLM HQ STAFF PEER ASSESSMENT")
+            context["staff_list"] = get_all_staff(conn)
+        finally:
+            conn.close()
+    return render_template("settings.html", request, context)
+
+
+@app.post("/api/settings/credentials")
+async def update_credentials(request: Request):
+    if not is_admin(request):
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    body = await request.json()
+    current_password = str(body.get("current_password") or "")
+    new_username = str(body.get("username") or "").strip()
+    new_password = str(body.get("new_password") or "")
+
+    conn = get_db_connection()
+    if not conn:
+        raise HTTPException(status_code=500, detail="DB connection failed")
+    try:
+        stored_user = get_setting(conn, "admin_username", ADMIN_USERNAME)
+        stored_hash = get_setting(conn, "admin_password", "")
+        if stored_hash:
+            current_ok = verify_password(current_password, stored_hash)
+        else:
+            current_ok = hmac.compare_digest(current_password, ADMIN_PASSWORD)
+        if not current_ok:
+            raise HTTPException(status_code=400, detail="Current password is incorrect.")
+
+        if new_username and new_username != stored_user:
+            valid, message = validate_username(new_username)
+            if not valid:
+                raise HTTPException(status_code=400, detail=message)
+            set_setting(conn, "admin_username", new_username)
+
+        if new_password:
+            valid, message = validate_password(new_password)
+            if not valid:
+                raise HTTPException(status_code=400, detail=message)
+            if new_password != str(body.get("confirm_password") or ""):
+                raise HTTPException(status_code=400, detail="New passwords do not match.")
+            set_setting(conn, "admin_password", hash_password(new_password))
+
+        return {"ok": True}
+    finally:
+        conn.close()
+
+
+@app.post("/api/settings/site")
+async def update_site_title(request: Request):
+    if not is_admin(request):
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    body = await request.json()
+    valid, message = validate_site_title(body.get("site_title"))
+    if not valid:
+        raise HTTPException(status_code=400, detail=message)
+    conn = get_db_connection()
+    if not conn:
+        raise HTTPException(status_code=500, detail="DB connection failed")
+    try:
+        set_setting(conn, "site_title", message)
+        return {"ok": True, "site_title": message}
+    finally:
+        conn.close()
+
+
+@app.post("/api/settings/staff")
+async def update_staff(request: Request):
+    if not is_admin(request):
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    body = await request.json()
+    action = body.get("action")
+
+    conn = get_db_connection()
+    if not conn:
+        raise HTTPException(status_code=500, detail="DB connection failed")
+    try:
+        cursor = conn.cursor(pymysql.cursors.DictCursor)
+
+        if action == "add":
+            valid, name = validate_staff_name(body.get("name"))
+            if not valid:
+                raise HTTPException(status_code=400, detail=name)
+            if find_staff_member(conn, name):
+                raise HTTPException(status_code=400, detail=f"{name} already exists.")
+            cursor.execute(
+                "INSERT INTO staff_names (id, name) VALUES (%s, %s)",
+                (str(uuid.uuid4()), name),
+            )
+            conn.commit()
+            return {"ok": True, "name": name}
+
+        if action == "rename":
+            staff_id = str(body.get("id") or "")
+            valid, name = validate_staff_name(body.get("name"))
+            if not valid:
+                raise HTTPException(status_code=400, detail=name)
+            cursor.execute("SELECT id FROM staff_names WHERE id = %s", (staff_id,))
+            if not cursor.fetchone():
+                raise HTTPException(status_code=404, detail="Staff member not found.")
+            cursor.execute(
+                "SELECT id FROM staff_names WHERE name = %s AND id != %s",
+                (name, staff_id),
+            )
+            if cursor.fetchone():
+                raise HTTPException(status_code=400, detail=f"{name} already exists.")
+            cursor.execute(
+                "UPDATE staff_names SET name = %s WHERE id = %s",
+                (name, staff_id),
+            )
+            cursor.execute(
+                "UPDATE appraisals SET staff_name = %s WHERE staff_id = %s",
+                (name, staff_id),
+            )
+            conn.commit()
+            return {"ok": True, "name": name}
+
+        if action == "delete":
+            staff_id = str(body.get("id") or "")
+            cursor.execute("SELECT id FROM staff_names WHERE id = %s", (staff_id,))
+            if not cursor.fetchone():
+                raise HTTPException(status_code=404, detail="Staff member not found.")
+            cursor.execute(
+                "SELECT COUNT(*) AS c FROM appraisals WHERE staff_id = %s",
+                (staff_id,),
+            )
+            if cursor.fetchone()["c"] > 0:
+                raise HTTPException(
+                    status_code=409,
+                    detail="Cannot delete: this staff member already has appraisals.",
+                )
+            cursor.execute("DELETE FROM staff_names WHERE id = %s", (staff_id,))
+            conn.commit()
+            return {"ok": True}
+
+        raise HTTPException(status_code=400, detail="Unknown action.")
+    finally:
+        conn.close()
 
 
 @app.get("/api/submissions")

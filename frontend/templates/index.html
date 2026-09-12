@@ -34,7 +34,7 @@
         }
 
         .app-container {
-            max-width: 1100px;
+            max-width: 1320px;
             margin: 0 auto;
         }
 
@@ -452,19 +452,82 @@
             left: 100%;
         }
 
+        /* Two-column masonry for rating sections on wide screens */
+        .sections-masonry {
+            display: block;
+        }
+        .sections-masonry > .form-section {
+            margin-bottom: 2rem;
+            break-inside: avoid;
+            -webkit-column-break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        /* Action banner (submit + admin access) */
+        .action-banner {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-top: 4px solid var(--dclm-gold);
+            border-radius: 18px;
+            box-shadow: var(--shadow);
+            padding: 2.5rem 2rem;
+            text-align: center;
+        }
+        .action-banner .submit-btn {
+            min-width: 280px;
+        }
+        .action-hint {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: var(--dclm-gray);
+        }
+        .admin-access {
+            margin-top: 1.75rem;
+            padding-top: 1.25rem;
+            border-top: 1px solid #E2E8F0;
+        }
+        .admin-access a {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--dclm-gray);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            transition: all 0.25s ease;
+        }
+        .admin-access a:hover {
+            color: var(--dclm-blue);
+            background: #EFF6FF;
+        }
+        .admin-access a .lock {
+            font-size: 0.85rem;
+        }
+
         /* Responsive */
+        @media (min-width: 1024px) {
+            .sections-masonry {
+                column-count: 2;
+                column-gap: 2rem;
+            }
+        }
         @media (max-width: 768px) {
             .form-header h1 { font-size: 1.5rem; }
             .inline-radio { grid-template-columns: 1fr; }
             .rating-legend { grid-template-columns: 1fr 1fr; }
             .form-section { padding: 1.5rem; }
+            .action-banner { padding: 1.75rem 1.25rem; }
+            .action-banner .submit-btn { width: 100%; min-width: 0; }
         }
     </style>
 </head>
 <body>
     <div class="app-container">
         <header class="form-header">
-            <h1>DCLM HQ STAFF PEER ASSESSMENT</h1>
+            <h1>{{ site_title }}</h1>
             <h2>360° PEER APPRAISAL FORM</h2>
             <p class="instruction">Please assess your colleague by selecting one option per section. Time to complete: 5–10 minutes.</p>
         </header>
@@ -524,6 +587,8 @@
                 </div>
             </section>
 
+            <!-- Rating Sections (two-column masonry on wide screens) -->
+            <div class="sections-masonry">
             <!-- 1. Christian Conduct -->
             <section class="form-section">
                 <h3>1. Christian Conduct and Integrity</h3>
@@ -746,6 +811,8 @@
                     </label>
                 </div>
             </section>
+            </div>
+            <!-- /Rating Sections -->
 
             <!-- Comments -->
             <section class="form-section comments-section">
@@ -772,9 +839,13 @@
                 </div>
             </section>
 
-            <!-- Submit Button -->
-            <div class="submit-container">
+            <!-- Submit Button + Admin Access -->
+            <div class="action-banner">
                 <button type="submit" class="submit-btn" id="submitBtn">Submit Appraisal</button>
+                <p class="action-hint">Your response is anonymous and saved securely.</p>
+                <div class="admin-access">
+                    <a href="/login"><span class="lock">🔒</span> Admin Login</a>
+                </div>
             </div>
         </form>
     </div>

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings — DCLM Appraisal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-50 to-sky-50">
+    <div class="max-w-4xl mx-auto p-4 md:p-6">
+
+        <header class="bg-gradient-to-r from-[#0F4C81] to-[#165D96] text-white rounded-2xl shadow-lg px-5 py-4 md:px-8 md:py-6 mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <h1 class="text-xl md:text-2xl font-bold">Admin Settings</h1>
+                <p class="text-sm opacity-90 mt-1">Manage login, site title and the staff list</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="/dashboard" class="text-sm bg-white text-[#0F4C81] font-semibold px-4 py-2 rounded-lg hover:bg-blue-50 transition">← Dashboard</a>
+                <a href="/logout" class="text-sm bg-red-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-red-600 transition">Logout</a>
+            </div>
+        </header>
+
+        <div id="toast" class="hidden fixed top-4 right-4 z-50 px-5 py-3 rounded-lg shadow-lg text-white text-sm font-semibold"></div>
+
+        <!-- Login Credentials -->
+        <div class="bg-white rounded-2xl shadow p-5 md:p-6 mb-6 border border-gray-100">
+            <h2 class="text-lg font-bold text-[#0F4C81] mb-4">Login Credentials</h2>
+            <form id="credentials-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Current Username</label>
+                    <input type="text" id="current-username" value="{{ admin_username }}" disabled class="w-full px-4 py-3 border-2 border-gray-100 bg-gray-50 rounded-lg text-gray-600 font-mono text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">New Username <span class="text-gray-400 font-normal">(optional)</span></label>
+                    <input type="text" id="username" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-[#0F4C81] focus:outline-none" placeholder="Leave blank to keep current username">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Current Password <span class="text-red-500">*</span></label>
+                    <input type="password" id="current-password" required autocomplete="current-password" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-[#0F4C81] focus:outline-none" placeholder="Required to save any change">
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">New Password <span class="text-gray-400 font-normal">(optional, min 8)</span></label>
+                        <input type="password" id="new-password" autocomplete="new-password" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-[#0F4C81] focus:outline-none" placeholder="Leave blank to keep">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Confirm New Password</label>
+                        <input type="password" id="confirm-password" autocomplete="new-password" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-[#0F4C81] focus:outline-none">
+                    </div>
+                </div>
+                <button type="submit" class="bg-gradient-to-r from-[#0F4C81] to-[#165D96] text-white font-semibold px-6 py-3 rounded-lg hover:opacity-95 transition">Save Credentials</button>
+            </form>
+        </div>
+
+        <!-- Site Title -->
+        <div class="bg-white rounded-2xl shadow p-5 md:p-6 mb-6 border border-gray-100">
+            <h2 class="text-lg font-bold text-[#0F4C81] mb-4">App Title</h2>
+            <p class="text-sm text-gray-500 mb-3">Shown in the header of the appraisal form and dashboard.</p>
+            <form id="site-form" class="flex flex-col md:flex-row gap-3">
+                <input type="text" id="site-title" value="{{ site_title }}" class="flex-1 px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-[#0F4C81] focus:outline-none">
+                <button type="submit" class="bg-gradient-to-r from-[#0F4C81] to-[#165D96] text-white font-semibold px-6 py-3 rounded-lg hover:opacity-95 transition">Save Title</button>
+            </form>
+        </div>
+
+        <!-- Staff List -->
+        <div class="bg-white rounded-2xl shadow p-5 md:p-6 border border-gray-100">
+            <h2 class="text-lg font-bold text-[#0F4C81] mb-1">Staff List</h2>
+            <p class="text-sm text-gray-500 mb-4">Used for the name suggestions on the appraisal form. A staff member with appraisals cannot be deleted.</p>
+
+            <form id="add-staff-form" class="flex flex-col md:flex-row gap-3 mb-6">
+                <input type="text" id="add-staff-name" class="flex-1 px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-[#0F4C81] focus:outline-none" placeholder="Full name of new staff member">
+                <button type="submit" class="bg-emerald-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-emerald-700 transition">Add Staff</button>
+            </form>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm border-collapse min-w-[400px]">
+                    <thead>
+                        <tr class="bg-gray-50 text-gray-600">
+                            <th class="text-left px-3 py-2 font-semibold">Name</th>
+                            <th class="px-3 py-2 font-semibold text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="staff-rows">
+                        {% for s in staff_list %}
+                        <tr class="border-b border-gray-100" data-id="{{ s.id }}">
+                            <td class="px-3 py-2 text-gray-700">{{ s.name }}</td>
+                            <td class="px-3 py-2 text-right whitespace-nowrap">
+                                <button class="rename-btn text-[#0F4C81] font-semibold hover:underline px-2">Rename</button>
+                                <button class="delete-btn text-red-500 font-semibold hover:underline px-2">Delete</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function showToast(message, isError) {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.className = 'fixed top-4 right-4 z-50 px-5 py-3 rounded-lg shadow-lg text-white text-sm font-semibold ' + (isError ? 'bg-red-500' : 'bg-emerald-600');
+        toast.classList.remove('hidden');
+        clearTimeout(window._toastTimer);
+        window._toastTimer = setTimeout(() => toast.classList.add('hidden'), 4000);
+    }
+
+    async function postJson(url, data) {
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        let body = {};
+        try { body = await res.json(); } catch (e) {}
+        if (!res.ok) throw new Error(body.detail || ('Request failed (' + res.status + ')'));
+        return body;
+    }
+
+    document.getElementById('credentials-form').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        try {
+            await postJson('/api/settings/credentials', {
+                username: document.getElementById('username').value,
+                current_password: document.getElementById('current-password').value,
+                new_password: document.getElementById('new-password').value,
+                confirm_password: document.getElementById('confirm-password').value
+            });
+            showToast('✅ Credentials updated.');
+            document.getElementById('username').value = '';
+            document.getElementById('new-password').value = '';
+            document.getElementById('confirm-password').value = '';
+            document.getElementById('current-password').value = '';
+            const stored = document.getElementById('username');
+            const uname = document.getElementById('current-username');
+            if (document.getElementById('username').value) { uname.value = document.getElementById('username').value; }
+        } catch (err) { showToast('❌ ' + err.message, true); }
+    });
+
+    document.getElementById('site-form').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        try {
+            const data = await postJson('/api/settings/site', { site_title: document.getElementById('site-title').value });
+            showToast('✅ Site title updated.');
+        } catch (err) { showToast('❌ ' + err.message, true); }
+    });
+
+    document.getElementById('add-staff-form').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const name = document.getElementById('add-staff-name').value;
+        try {
+            const data = await postJson('/api/settings/staff', { action: 'add', name: name });
+            location.reload();
+        } catch (err) { showToast('❌ ' + err.message, true); }
+    });
+
+    document.getElementById('staff-rows').addEventListener('click', async function (e) {
+        const renameBtn = e.target.closest('.rename-btn');
+        const deleteBtn = e.target.closest('.delete-btn');
+        if (renameBtn) {
+            const row = renameBtn.closest('tr');
+            const id = row.dataset.id;
+            const current = row.querySelector('td').textContent.trim();
+            const newName = prompt('Rename staff member to:', current);
+            if (!newName || newName === current) return;
+            try {
+                await postJson('/api/settings/staff', { action: 'rename', id: id, name: newName });
+                showToast('✅ Staff member renamed.');
+                location.reload();
+            } catch (err) { showToast('❌ ' + err.message, true); }
+        } else if (deleteBtn) {
+            const row = deleteBtn.closest('tr');
+            const id = row.dataset.id;
+            const name = row.querySelector('td').textContent.trim();
+            if (!confirm('Delete "' + name + '" from the staff list?')) return;
+            try {
+                await postJson('/api/settings/staff', { action: 'delete', id: id });
+                showToast('✅ Staff member deleted.');
+                location.reload();
+            } catch (err) { showToast('❌ ' + err.message, true); }
+        }
+    });
+    </script>
+</body>
+</html>

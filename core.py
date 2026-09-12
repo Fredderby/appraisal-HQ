@@ -1,4 +1,10 @@
 import hashlib
+import hmac
+import re
+import secrets
+
+PASSWORD_ITERATIONS = 200000
+USERNAME_RE = re.compile(r"^[A-Za-z0-9 ._\-]+$")
 
 SCORE_MIDPOINTS = {
     "90-100": 95.0,
@@ -137,3 +143,71 @@ def compute_staff_stats(rows):
         "improvements": improvements,
     }
     return stats
+
+
+def hash_password(password, iterations=PASSWORD_ITERATIONS):
+    salt = secrets.token_bytes(16)
+    derived = hashlib.pbkdf2_hmac(
+        "sha256", str(password).encode("utf-8"), salt, iterations
+    )
+    return f"pbkdf2$sha256${iterations}${salt.hex()}${derived.hex()}"
+
+
+def verify_password(password, stored):
+    if not stored:
+        return False
+    parts = stored.split("$")
+    if len(parts) != 5 or parts[0] != "pbkdf2":
+        return False
+    try:
+        iterations = int(parts[2])
+        salt = bytes.fromhex(parts[3])
+        expected = bytes.fromhex(parts[4])
+    except ValueError:
+        return False
+    derived = hashlib.pbkdf2_hmac(
+        "sha256", str(password).encode("utf-8"), salt, iterations
+    )
+    return hmac.compare_digest(derived, expected)
+
+
+def validate_username(username):
+    value = str(username or "").strip()
+    if not value:
+        return (False, "Username is required.")
+    if len(value) < 3:
+        return (False, "Username must be at least 3 characters.")
+    if len(value) > 50:
+        return (False, "Username must be 50 characters or fewer.")
+    if not USERNAME_RE.match(value):
+        return (False, "Username may only contain letters, numbers, spaces, dots, dashes and underscores.")
+    return (True, value)
+
+
+def validate_password(password):
+    value = str(password or "")
+    if not value:
+        return (False, "Password is required.")
+    if len(value) < 8:
+        return (False, "Password must be at least 8 characters.")
+    if len(value) > 128:
+        return (False, "Password must be 128 characters or fewer.")
+    return (True, value)
+
+
+def validate_site_title(title):
+    value = str(title or "").strip()
+    if not value:
+        return (False, "Site title is required.")
+    if len(value) > 100:
+        return (False, "Site title must be 100 characters or fewer.")
+    return (True, value)
+
+
+def validate_staff_name(name):
+    value = normalize_name(name)
+    if not value:
+        return (False, "Name is required.")
+    if len(value) > 100:
+        return (False, "Name must be 100 characters or fewer.")
+    return (True, value)

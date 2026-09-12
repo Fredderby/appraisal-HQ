@@ -14,9 +14,10 @@
         <header class="bg-gradient-to-r from-[#0F4C81] to-[#165D96] text-white rounded-2xl shadow-lg px-5 py-4 md:px-8 md:py-6 mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
                 <h1 class="text-xl md:text-2xl font-bold">DCLM Appraisal Dashboard</h1>
-                <p class="text-sm opacity-90 mt-1">360° Peer Appraisal — aggregated results</p>
+                <p class="text-sm opacity-90 mt-1">360° Peer Appraisal — aggregated results · <span id="site-title-label">{{ site_title }}</span></p>
             </div>
             <div class="flex items-center gap-3">
+                <a href="/settings" class="text-sm bg-white text-[#0F4C81] font-semibold px-4 py-2 rounded-lg hover:bg-blue-50 transition">⚙ Settings</a>
                 <a href="/api/export.csv" class="text-sm bg-white text-[#0F4C81] font-semibold px-4 py-2 rounded-lg hover:bg-blue-50 transition">⬇ Export CSV</a>
                 <a href="/logout" class="text-sm bg-red-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-red-600 transition">Logout</a>
             </div>
