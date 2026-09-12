@@ -102,6 +102,8 @@ def compute_staff_stats(rows):
     devices = set()
     strengths = []
     improvements = []
+    seen_strengths = set()
+    seen_improvements = set()
     first_seen = None
     last_seen = None
 
@@ -117,10 +119,16 @@ def compute_staff_stats(rows):
 
         strength = (row.get("strengths") or "").strip()
         if strength:
-            strengths.append(strength)
+            key = " ".join(strength.lower().split())
+            if key not in seen_strengths:
+                seen_strengths.add(key)
+                strengths.append(strength)
         improvement = (row.get("improvements") or "").strip()
         if improvement:
-            improvements.append(improvement)
+            key = " ".join(improvement.lower().split())
+            if key not in seen_improvements:
+                seen_improvements.add(key)
+                improvements.append(improvement)
 
         timestamp = row.get("created_at")
         if timestamp:

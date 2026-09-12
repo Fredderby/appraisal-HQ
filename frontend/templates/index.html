@@ -507,20 +507,29 @@
             border-radius: 18px;
             box-shadow: var(--shadow);
             padding: 2.5rem 2rem;
-            text-align: center;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
         }
         .action-banner .submit-btn {
             min-width: 280px;
+            align-self: flex-start;
         }
         .action-hint {
             margin-top: 1rem;
             font-size: 0.9rem;
             color: var(--dclm-gray);
+            text-align: left;
+            align-self: flex-start;
         }
         .admin-access {
             margin-top: 1.75rem;
             padding-top: 1.25rem;
             border-top: 1px solid #E2E8F0;
+            width: 100%;
+            text-align: left;
+            align-self: stretch;
         }
         .admin-access a {
             display: inline-flex;
@@ -880,7 +889,7 @@
     </div>
 
     <script>window.STAFF_NAMES = {{ staff_names_json | safe }};</script>
-    <script src="{{ url_for('static', path='js/script.js') }}"></script>
+    <script src="{{ url_for('static', path='js/script.js') }}?v=3"></script>
     <script>
         // Enhanced Progress Logic
         document.addEventListener('DOMContentLoaded', function() {
