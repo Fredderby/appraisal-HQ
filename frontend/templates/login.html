@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login — DCLM Appraisal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #EFF6FF 0%, #F0F9FF 100%);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+            <div class="bg-gradient-to-r from-[#0F4C81] to-[#165D96] text-white p-6 text-center">
+                <h1 class="text-2xl font-bold">DCLM Appraisal</h1>
+                <p class="text-sm opacity-90 mt-1">Admin Dashboard</p>
+            </div>
+            <form action="/login" method="POST" class="p-8 space-y-5">
+                {% if error %}
+                <div class="bg-red-50 border border-red-200 text-red-700 text-sm font-medium rounded-lg px-4 py-3 text-center">
+                    {{ error }}
+                </div>
+                {% endif %}
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Username</label>
+                    <input type="text" name="username" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-[#0F4C81] focus:outline-none focus:ring-4 focus:ring-blue-100" placeholder="Enter username" required autocomplete="username">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Password</label>
+                    <input type="password" name="password" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-[#0F4C81] focus:outline-none focus:ring-4 focus:ring-blue-100" placeholder="Enter password" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="w-full bg-gradient-to-r from-[#0F4C81] to-[#165D96] text-white font-semibold py-3 rounded-lg hover:opacity-95 transition">
+                    Sign In
+                </button>
+                <p class="text-center text-xs text-gray-400 mt-2">
+                    Authorized personnel only. <a href="/" class="text-[#0F4C81] underline">← Back to appraisal form</a>
+                </p>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

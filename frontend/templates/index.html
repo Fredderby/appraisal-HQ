@@ -372,6 +372,46 @@
             line-height: 1.6;
         }
 
+        /* Name Autocomplete */
+        .name-autocomplete {
+            position: relative;
+        }
+        .name-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            background: white;
+            border: 2px solid var(--dclm-blue);
+            border-radius: 0 0 12px 12px;
+            max-height: 240px;
+            overflow-y: auto;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+        }
+        .name-suggestion-item {
+            padding: 0.8rem 1.2rem;
+            cursor: pointer;
+            font-size: 0.95rem;
+            color: var(--dclm-dark);
+            border-bottom: 1px solid #F1F5F9;
+            transition: background 0.15s ease;
+        }
+        .name-suggestion-item:last-child {
+            border-bottom: none;
+        }
+        .name-suggestion-item:hover,
+        .name-suggestion-item.active {
+            background: #EFF6FF;
+            color: var(--dclm-blue);
+            font-weight: 600;
+        }
+        .suggestion-hint {
+            margin-top: 0.6rem;
+            font-size: 0.85rem;
+            color: var(--dclm-gray);
+        }
+
         /* Submit Button */
         .submit-container {
             text-align: center;
@@ -464,7 +504,12 @@
             <!-- Staff Name -->
             <section class="form-section">
                 <label class="section-label">Staff Being Assessed:</label>
-                <input type="text" name="staff_name" class="form-input" placeholder="Enter full name" required>
+                <div class="name-autocomplete">
+                    <input type="text" id="staff_name" name="staff_name" class="form-input" placeholder="Start typing to pick from the staff list" required autocomplete="off">
+                    <div id="name-suggestions" class="name-suggestions hidden"></div>
+                </div>
+                <p class="suggestion-hint">💡 Pick the name from the suggestions so it matches the staff records exactly.</p>
+                <input type="hidden" name="device_id" id="device_id" value="">
             </section>
 
             <!-- Rating Scale Legend -->
@@ -734,6 +779,7 @@
         </form>
     </div>
 
+    <script>window.STAFF_NAMES = {{ staff_names_json | safe }};</script>
     <script src="{{ url_for('static', path='js/script.js') }}"></script>
     <script>
         // Enhanced Progress Logic
