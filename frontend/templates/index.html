@@ -396,22 +396,52 @@
             }
         }
 
-        /* Name Autocomplete */
+        /* Name Autocomplete — searchable dropdown */
         .name-autocomplete {
             position: relative;
         }
+        .name-autocomplete::after {
+            content: '▼';
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--dclm-blue);
+            font-size: 0.8rem;
+            pointer-events: none;
+            opacity: 0.7;
+        }
+        .name-autocomplete.has-value::after {
+            content: '✕';
+            pointer-events: auto;
+            cursor: pointer;
+            opacity: 0.5;
+        }
         .name-suggestions {
             position: absolute;
-            top: 100%;
+            top: calc(100% + 6px);
             left: 0;
             right: 0;
             z-index: 50;
             background: white;
             border: 2px solid var(--dclm-blue);
-            border-radius: 0 0 12px 12px;
-            max-height: 240px;
+            border-radius: 12px;
+            max-height: 320px;
             overflow-y: auto;
             box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+            overflow-x: hidden;
+        }
+        .name-suggestions .dropdown-header {
+            padding: 0.6rem 1.2rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--dclm-gray);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            background: #F8FAFC;
+            border-bottom: 1px solid #E2E8F0;
+            position: sticky;
+            top: 0;
         }
         .name-suggestion-item {
             padding: 0.8rem 1.2rem;
@@ -617,11 +647,11 @@
             <!-- Staff Name -->
             <section class="form-section">
                 <label class="section-label">Staff Being Assessed:</label>
-                <div class="name-autocomplete">
-                    <input type="text" id="staff_name" name="staff_name" class="form-input" placeholder="Start typing to pick from the staff list" required autocomplete="off">
+                <div class="name-autocomplete" id="name-autocomplete-wrap">
+                    <input type="text" id="staff_name" name="staff_name" class="form-input" style="padding-right: 2.5rem;" placeholder="Search or select staff — click to see all 31 colleagues" required autocomplete="off">
                     <div id="name-suggestions" class="name-suggestions hidden"></div>
                 </div>
-                <p class="suggestion-hint">💡 Pick the name from the suggestions so it matches the staff records exactly.</p>
+                <p class="suggestion-hint">💡 Click to see the full staff dropdown (from Admin panel), or type to search. New names added in Admin appear here instantly.</p>
                 <input type="hidden" name="device_id" id="device_id" value="">
             </section>
 
@@ -889,7 +919,7 @@
     </div>
 
     <script>window.STAFF_NAMES = {{ staff_names_json | safe }};</script>
-    <script src="{{ url_for('static', path='js/script.js') }}?v=4"></script>
+    <script src="{{ url_for('static', path='js/script.js') }}?v=5"></script>
     <script>
         // Enhanced Progress Logic
         document.addEventListener('DOMContentLoaded', function() {

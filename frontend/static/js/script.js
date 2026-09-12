@@ -34,8 +34,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 suggestionsBox.classList.add('hidden');
                 return;
             }
+            // dropdown header showing count / source
+            var hdr = document.createElement('div');
+            hdr.className = 'dropdown-header';
+            hdr.textContent = list.length + ' staff — from Admin panel';
+            suggestionsBox.appendChild(hdr);
             list.forEach(function(name) {
-                const div = document.createElement('div');
+                var div = document.createElement('div');
                 div.textContent = name;
                 div.className = 'name-suggestion-item';
                 div.addEventListener('mousedown', function(e) {
@@ -53,8 +58,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
         function selectName(name) {
             nameInput.value = name;
+            var wrap = document.getElementById('name-autocomplete-wrap');
+            if (wrap) wrap.classList.add('has-value');
             suggestionsBox.classList.add('hidden');
             activeIndex = -1;
+            if (nameInput.dispatchEvent) nameInput.dispatchEvent(new Event('change', {bubbles:true}));
+        }
+        function clearSelection() {
+            nameInput.value = '';
+            var wrap = document.getElementById('name-autocomplete-wrap');
+            if (wrap) wrap.classList.remove('has-value');
+            showSuggestions(window.STAFF_NAMES.slice());
+            nameInput.focus();
         }
 
         // --- powerful fuzzy search helpers
@@ -104,25 +119,41 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         nameInput.addEventListener('input', function() {
-            var query = nameInput.value.trim().toLowerCase();
-            hideOnFocusName(query);
+            var q = nameInput.value.trim();
+            var wrap = document.getElementById('name-autocomplete-wrap');
+            if (wrap) { if (q) wrap.classList.add('has-value'); else wrap.classList.remove('has-value'); }
+            hideOnFocusName(q.toLowerCase());
         });
-        // show all names on focus/click so every DB name is a potential pop-up
+        // searchable dropdown: click/focus shows full list from Admin panel
         nameInput.addEventListener('focus', function() {
             var q = nameInput.value.trim().toLowerCase();
-            if (!q) showSuggestions(window.STAFF_NAMES.slice(0, 8));
+            if (!q) showSuggestions(window.STAFF_NAMES.slice());
             else hideOnFocusName(q);
         });
         nameInput.addEventListener('click', function() {
             var q = nameInput.value.trim().toLowerCase();
             if (!q && suggestionsBox.classList.contains('hidden')) {
-                showSuggestions(window.STAFF_NAMES.slice(0, 8));
+                showSuggestions(window.STAFF_NAMES.slice());
             }
         });
+        // click on X to clear
+        var wrapEl = document.getElementById('name-autocomplete-wrap');
+        if (wrapEl) {
+            wrapEl.addEventListener('click', function(e) {
+                if (!wrapEl.classList.contains('has-value')) return;
+                var rect = wrapEl.getBoundingClientRect();
+                if (e.clientX > rect.right - 40 && e.clientY > rect.top && e.clientY < rect.bottom) {
+                    if (e.target === wrapEl || e.target.closest && !e.target.closest('#name-suggestions')) {
+                        // crude X hit — only if near right edge and has value
+                        if (wrapEl.classList.contains('has-value')) { e.preventDefault(); clearSelection(); }
+                    }
+                }
+            });
+        }
 
         function hideOnFocusName(query) {
             if (!query) {
-                showSuggestions(window.STAFF_NAMES.slice(0, 8));
+                showSuggestions(window.STAFF_NAMES.slice());
                 return;
             }
             var scored = [];

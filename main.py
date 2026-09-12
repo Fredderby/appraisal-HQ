@@ -558,13 +558,33 @@ async def dashboard(request: Request):
             kpis["males"] = cursor.fetchone()[0] or 0
             cursor.execute("SELECT COUNT(DISTINCT a.staff_id) FROM appraisals a JOIN staff_names s ON a.staff_id=s.id WHERE s.gender='female'")
             kpis["females"] = cursor.fetchone()[0] or 0
+            # Top 5 leading by overall average
+            top_leaders = []
+            for s in staff_list:
+                cursor.execute(
+                    "SELECT overall_assessment FROM appraisals WHERE staff_id = %s OR staff_name = %s",
+                    (s["id"], s["name"]),
+                )
+                vals = cursor.fetchall()
+                points = [score_midpoint(r[0]) for r in vals if score_midpoint(r[0]) is not None]
+                if points:
+                    avg = round(sum(points) / len(points), 2)
+                    top_leaders.append({
+                        "id": s["id"],
+                        "name": s["name"],
+                        "gender": s.get("gender", "unspecified"),
+                        "avg": avg,
+                        "count": len(points),
+                    })
+            top_leaders.sort(key=lambda x: x["avg"], reverse=True)
+            top_leaders = top_leaders[:5]
         finally:
             conn.close()
 
     return render_template(
         "dashboard.html",
         request,
-        {"staff_list": staff_list, "kpis": kpis, "site_title": site_title},
+        {"staff_list": staff_list, "kpis": kpis, "site_title": site_title, "top_leaders": top_leaders if 'top_leaders' in locals() else []},
     )
 
 

@@ -64,6 +64,52 @@
             </div>
         </div>
 
+        <!-- Top 5 Leading by Overall Average — premium -->
+        {% if top_leaders %}
+        <div class="bg-white rounded-2xl shadow-sm p-5 md:p-6 mb-6 border border-gray-100 border-t-4 border-[#C9A86A] hover:shadow-md transition-shadow">
+            <div class="flex items-center gap-2 mb-4">
+                <span class="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-600 flex items-center justify-center text-white text-sm">🏆</span>
+                <h2 class="text-lg font-bold text-[#0F4C81] tracking-tight">Top 5 Leading by Overall Average</h2>
+                <span class="ml-auto text-xs bg-[#0F4C81]/5 text-[#0F4C81] font-semibold px-3 py-1 rounded-full border border-[#0F4C81]/10">Overall Assessment</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-xs text-gray-500 uppercase tracking-widest border-b border-gray-100">
+                            <th class="text-left py-2 font-semibold">#</th>
+                            <th class="text-left py-2 font-semibold">Staff</th>
+                            <th class="text-center py-2 font-semibold">Avg</th>
+                            <th class="text-center py-2 font-semibold">Band</th>
+                            <th class="text-center py-2 font-semibold">Appraisals</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in top_leaders %}
+                        <tr class="border-b border-gray-50 hover:bg-blue-50/40 transition {% if loop.index == 1 %}bg-amber-50/30{% elif loop.index == 2 %}bg-gray-50/50{% elif loop.index == 3 %}bg-orange-50/30{% endif %}">
+                            <td class="py-3 font-bold {% if loop.index == 1 %}text-amber-600{% elif loop.index == 2 %}text-gray-500{% elif loop.index == 3 %}text-amber-700{% else %}text-[#0F4C81]{% endif %} text-center">
+                                {% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% else %}{{ loop.index }}{% endif %}
+                            </td>
+                            <td class="py-3">
+                                <a href="#" onclick="document.getElementById('staffSelect').value='{{ p.id }}'; document.getElementById('staffSelect').dispatchEvent(new Event('change')); window.scrollTo({top: document.getElementById('staffSelect').offsetTop - 80, behavior:'smooth'}); return false;" class="font-semibold text-[#0F4C81] hover:text-[#165D96] hover:underline flex items-center gap-2">
+                                    {{ p.name }}
+                                    {% if p.gender == 'male' %}<span class="text-blue-600 text-xs">♂</span>{% elif p.gender == 'female' %}<span class="text-pink-600 text-xs">♀</span>{% endif %}
+                                </a>
+                            </td>
+                            <td class="py-3 text-center font-bold {% if p.avg >= 80 %}text-emerald-600{% elif p.avg >= 70 %}text-[#0F4C81]{% elif p.avg >= 60 %}text-amber-600{% else %}text-red-600{% endif %}">{{ "%.2f"|format(p.avg) }}</td>
+                            <td class="py-3 text-center">
+                                <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-bold border {% if p.avg >= 90 %}bg-emerald-50 text-emerald-700 border-emerald-200{% elif p.avg >= 80 %}bg-emerald-50 text-emerald-700 border-emerald-200{% elif p.avg >= 70 %}bg-blue-50 text-blue-700 border-blue-200{% elif p.avg >= 60 %}bg-amber-50 text-amber-700 border-amber-200{% else %}bg-red-50 text-red-600 border-red-200{% endif %}">
+                                    {% if p.avg >= 90 %}Excellent{% elif p.avg >= 80 %}Very Good{% elif p.avg >= 70 %}Good{% elif p.avg >= 60 %}Fair{% else %}Needs Impr.{% endif %}
+                                </span>
+                            </td>
+                            <td class="py-3 text-center text-gray-600 font-medium">{{ p.count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Staff Selector — premium -->
         <div class="bg-white rounded-2xl shadow-sm p-5 md:p-6 mb-6 border border-gray-100 border-t-4 border-[#C9A86A] hover:shadow-md transition-shadow">
             <label for="staffSelect" class="block text-sm font-semibold text-[#0F4C81] mb-2 tracking-wide">Select Staff Member for Detailed Breakdown</label>
