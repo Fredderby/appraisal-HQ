@@ -51,6 +51,9 @@
                     </div>
                 </div>
                 <button type="submit" class="bg-gradient-to-r from-[#0F4C81] to-[#165D96] text-white font-semibold px-6 py-3 rounded-xl hover:opacity-95 transition shadow-sm">Save Credentials</button>
+                {% if creds_updated_at %}
+                <p class="text-xs text-gray-500">Login credentials last changed: <strong class="font-mono">{{ creds_updated_at }}</strong></p>
+                {% endif %}
             </form>
         </div>
 
@@ -145,13 +148,21 @@
 
     document.getElementById('credentials-form').addEventListener('submit', async function (e) {
         e.preventDefault();
+        const newU = document.getElementById('username').value.trim();
+        const newP = document.getElementById('new-password').value;
+        if (!newU && !newP) { showToast('ℹ️ Nothing to change — enter a new username or password first.'); return; }
+        let msg = 'Are you sure you want to change the admin login credentials?';
+        if (newU) msg += '\nNew username: ' + newU;
+        if (newP) msg += '\n(New password will be set)';
+        if (!window.confirm(msg)) return;
         try {
-            await postJson('/api/settings/credentials', {
-                username: document.getElementById('username').value,
+            const data = await postJson('/api/settings/credentials', {
+                username: newU,
                 current_password: document.getElementById('current-password').value,
-                new_password: document.getElementById('new-password').value,
+                new_password: newP,
                 confirm_password: document.getElementById('confirm-password').value
             });
+            if (data && data.no_changes) { showToast('ℹ️ Nothing to change.'); return; }
             showToast('✅ Credentials updated.');
             document.getElementById('username').value = '';
             document.getElementById('new-password').value = '';

@@ -597,12 +597,23 @@ async def settings_page(request: Request):
         "admin_username": ADMIN_USERNAME,
         "site_title": "DCLM HQ STAFF PEER ASSESSMENT",
         "staff_list": [],
+        "creds_updated_at": None,
     }
     if conn:
         try:
             context["admin_username"] = get_setting(conn, "admin_username", ADMIN_USERNAME)
             context["site_title"] = get_setting(conn, "site_title", "DCLM HQ STAFF PEER ASSESSMENT")
             context["staff_list"] = get_all_staff(conn)
+            try:
+                cursor = conn.cursor()
+                cursor.execute(
+                    "SELECT updated_at FROM admin_settings WHERE setting_key='admin_password'"
+                )
+                row = cursor.fetchone()
+                if row and row[0]:
+                    context["creds_updated_at"] = row[0].strftime("%Y-%m-%d %H:%M")
+            except Exception:
+                pass
         finally:
             conn.close()
     return render_template("settings.html", request, context)
@@ -630,6 +641,9 @@ async def update_credentials(request: Request):
         if not current_ok:
             raise HTTPException(status_code=400, detail="Current password is incorrect.")
 
+        if not new_username and not new_password:
+            return {"ok": True, "no_changes": True}
+
         if new_username and new_username != stored_user:
             valid, message = validate_username(new_username)
             if not valid:
@@ -644,6 +658,8 @@ async def update_credentials(request: Request):
                 raise HTTPException(status_code=400, detail="New passwords do not match.")
             set_setting(conn, "admin_password", hash_password(new_password))
 
+        logger.info("admin credentials updated via /api/settings/credentials (username=%s, password_changed=%s)",
+                    bool(new_username), bool(new_password))
         return {"ok": True}
     finally:
         conn.close()
