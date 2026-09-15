@@ -19,6 +19,7 @@
             </div>
             <div class="flex items-center gap-3">
                 <a href="/settings" class="text-sm bg-white text-[#0F4C81] font-semibold px-4 py-2 rounded-xl hover:bg-blue-50 transition shadow-sm">⚙ Settings</a>
+                <a href="/report" class="text-sm bg-white text-[#0F4C81] font-semibold px-4 py-2 rounded-xl hover:bg-blue-50 transition shadow-sm">Print / PDF — All Staff</a>
                 <a href="/api/export.csv" class="text-sm bg-white text-[#0F4C81] font-semibold px-4 py-2 rounded-xl hover:bg-blue-50 transition shadow-sm">⬇ Export CSV</a>
                 <a href="/logout" class="text-sm bg-red-500 text-white font-semibold px-4 py-2 rounded-xl hover:bg-red-600 transition shadow-sm">Logout</a>
             </div>
@@ -114,12 +115,15 @@
         <div class="bg-white rounded-2xl shadow-sm p-5 md:p-6 mb-6 border border-gray-100 border-t-4 border-[#C9A86A] hover:shadow-md transition-shadow">
             <label for="staffSelect" class="block text-sm font-semibold text-[#0F4C81] mb-2 tracking-wide">Select Staff Member for Detailed Breakdown</label>
             <p class="text-xs text-gray-400 mb-3">Choose a name to view thematic averages, rating bands and comments</p>
-            <select id="staffSelect" class="w-full md:max-w-lg px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#0F4C81] focus:ring-2 focus:ring-[#0F4C81]/10 focus:outline-none bg-white text-gray-700 transition">
-                <option value="">— Choose a staff member —</option>
-                {% for s in staff_list %}
-                <option value="{{ s.id }}">{{ s.name }}</option>
-                {% endfor %}
-            </select>
+            <div class="flex flex-col md:flex-row items-stretch md:items-center gap-3">
+                <select id="staffSelect" class="w-full md:max-w-lg px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#0F4C81] focus:ring-2 focus:ring-[#0F4C81]/10 focus:outline-none bg-white text-gray-700 transition">
+                    <option value="">— Choose a staff member —</option>
+                    {% for s in staff_list %}
+                    <option value="{{ s.id }}">{{ s.name }}</option>
+                    {% endfor %}
+                </select>
+                <a id="printStaffBtn" href="/report" class="text-sm bg-[#0F4C81] text-white font-semibold px-4 py-3 rounded-xl hover:bg-[#165D96] transition shadow-sm opacity-40 pointer-events-none whitespace-nowrap text-center">Print / PDF — Selected Staff</a>
+            </div>
         </div>
 
         <!-- Breakdown Area -->
@@ -217,6 +221,14 @@
         const staffId = this.value;
         const breakdown = document.getElementById('breakdown');
         const noSelection = document.getElementById('no-selection');
+        const printStaffBtn = document.getElementById('printStaffBtn');
+        if (staffId) {
+            printStaffBtn.href = '/report?staff=' + encodeURIComponent(staffId);
+            printStaffBtn.classList.remove('opacity-40', 'pointer-events-none');
+        } else {
+            printStaffBtn.href = '/report';
+            printStaffBtn.classList.add('opacity-40', 'pointer-events-none');
+        }
         if (!staffId) {
             breakdown.classList.add('hidden');
             noSelection.classList.remove('hidden');

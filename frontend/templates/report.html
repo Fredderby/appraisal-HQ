@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assessment Report — {{ site_title }}</title>
+    <style>
+        :root{
+            --navy:#0F4C81;
+            --navy-dark:#0A3A63;
+            --gold:#C9A86A;
+            --ink:#1F2937;
+            --muted:#6B7280;
+            --line:#E5E7EB;
+            --bg:#F8FAFC;
+        }
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body{
+            font-family:Georgia, 'Times New Roman', serif;
+            color:var(--ink);
+            background:var(--bg);
+            line-height:1.5;
+            -webkit-print-color-adjust:exact;
+            print-color-adjust:exact;
+        }
+        .page{margin:0 auto;padding:24px;max-width:820px;background:#fff;}
+
+        /* ---------- Screen-only toolbar ---------- */
+        .toolbar{
+            max-width:820px;margin:0 auto;padding:18px 24px 0;
+            display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+        }
+        .btn{
+            border:0;cursor:pointer;font-family:inherit;font-size:13px;
+            font-weight:700;border-radius:8px;padding:10px 16px;
+            background:var(--navy);color:#fff;text-decoration:none;
+        }
+        .btn:hover{background:var(--navy-dark);}
+        .btn.ghost{background:#fff;color:var(--navy);border:1px solid var(--navy);}
+        .btn.ghost:hover{background:#EFF6FF;}
+        .btn.gold{background:var(--gold);color:#312A1A;}
+
+        /* ---------- Document header ---------- */
+        .doc-header{
+            border-bottom:3px double var(--gold);
+            padding-bottom:14px;margin-bottom:22px;
+        }
+        .org{
+            font-size:11px;letter-spacing:3px;text-transform:uppercase;
+            color:var(--navy);font-weight:700;margin-bottom:6px;
+        }
+        h1{font-size:26px;color:var(--navy);letter-spacing:.3px;}
+        .meta{
+            margin-top:8px;font-size:11.5px;color:var(--muted);
+            display:flex;gap:14px;flex-wrap:wrap;
+        }
+        .meta b{color:var(--navy);font-weight:700;}
+
+        /* ---------- Summary table ---------- */
+        h2.section-title{
+            font-size:16px;color:var(--navy);
+            border-left:4px solid var(--gold);padding-left:10px;margin:20px 0 12px;
+        }
+        table{width:100%;border-collapse:collapse;font-size:12.5px;}
+        .summary th{
+            background:var(--navy);color:#fff;text-align:left;
+            padding:8px 10px;font-size:11px;letter-spacing:1px;text-transform:uppercase;
+        }
+        .summary td{padding:8px 10px;border-bottom:1px solid var(--line);}
+        .summary tr:nth-child(even) td{background:#F3F7FB;}
+        .summary .num{text-align:center;}
+        .rank-badge{
+            display:inline-block;min-width:26px;text-align:center;
+            background:var(--gold);color:#fff;border-radius:5px;
+            font-weight:700;font-size:12px;padding:2px 6px;
+        }
+        .rank-badge.top{border-radius:50%;}
+        .band-pill{
+            display:inline-block;padding:3px 9px;border-radius:10px;
+            font-size:10.5px;font-weight:700;color:#fff;
+        }
+        .navy{background:var(--navy);}
+        .muted-pill{background:#9CA3AF;color:#fff;}
+        .band-pill.pill-excellent{background:var(--navy);}
+        .band-pill.pill-very-good{background:#2563EB;}
+        .band-pill.pill-good{background:#4F46E5;}
+        .band-pill.pill-fair{background:#D97706;}
+        .band-pill.pill-needs-improvement{background:#DC2626;}
+        .band-pill.pill-empty{background:#9CA3AF;}
+        .no-reviews{color:var(--muted);font-style:italic;font-size:12px;}
+
+        /* ---------- KPI strip ---------- */
+        .staff-head{
+            display:flex;justify-content:space-between;align-items:flex-end;
+            border-bottom:2px solid var(--navy);padding-bottom:10px;margin-bottom:16px;
+        }
+        .staff-head h2{font-size:22px;color:var(--navy);}
+        .staff-head .sub{font-size:12px;color:var(--muted);margin-top:2px;}
+        .gender{font-size:14px;font-weight:700;margin-left:6px;}
+        .gender.male{color:#1D4ED8;}
+        .gender.female{color:#DB2777;}
+        .gender.unspecified{color:var(--muted);}
+        .kpis{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+        .kpi{
+            flex:1;min-width:120px;text-align:center;
+            border:1px solid var(--line);border-top:3px solid var(--navy);
+            border-radius:8px;padding:12px 8px;background:#fff;
+        }
+        .kpi .num{font-size:22px;font-weight:700;color:var(--navy);}
+        .kpi.good .num{color:#059669;}
+        .kpi.fair .num{color:#D97706;}
+        .kpi.poor .num{color:#DC2626;}
+        .kpi .lbl{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:3px;}
+        .empty-note{
+            border:1px dashed var(--gold);background:#FAF6EC;color:#8A6A2E;
+            padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:16px;
+        }
+
+        /* ---------- Category bars ---------- */
+        h3.subhead{
+            font-size:13px;color:var(--navy);font-weight:700;
+            margin:18px 0 8px;text-transform:uppercase;letter-spacing:.5px;
+        }
+        table.bars td{padding:5px 8px;border:none;}
+        table.bars .bar-cell{width:46%;}
+        .bar{background:#EEF2F6;border-radius:6px;height:14px;overflow:hidden;min-width:90px;}
+        .fill{height:100%;border-radius:6px;}
+        .score-excellent{background:#059669;}
+        .score-very-good{background:#2563EB;}
+        .score-good{background:#4F46E5;}
+        .score-fair{background:#D97706;}
+        .score-needs-improvement{background:#DC2626;}
+        .score-empty{background:#D1D5DB;}
+        .bars .val{text-align:right;white-space:nowrap;font-size:12px;font-weight:700;color:var(--navy);}
+        .bars .val .band-name{font-weight:400;color:var(--muted);font-size:11px;}
+
+        /* ---------- Distribution table ---------- */
+        .dist th{background:var(--navy);color:#fff;padding:7px 6px;font-size:10.5px;letter-spacing:.5px;}
+        .dist td{padding:7px 6px;text-align:center;border-bottom:1px solid var(--line);font-size:12px;}
+        .dist td.area{text-align:left;font-weight:700;color:var(--navy);}
+        .dist tr:nth-child(even) td{background:#F3F7FB;}
+        .dist .hot{font-weight:700;}
+        .dist .hot.h-excellent{background:#D1FAE5;color:#065F46;}
+        .dist .hot.h-very-good{background:#DBEAFE;color:#1E40AF;}
+        .dist .hot.h-good{background:#E0E7FF;color:#3730A3;}
+        .dist .hot.h-fair{background:#FEF3C7;color:#92400E;}
+        .dist .hot.h-needs-improvement{background:#FEE2E2;color:#991B1B;}
+
+        /* ---------- Comments ---------- */
+        .cols{display:flex;gap:14px;margin-top:14px;}
+        .box{flex:1;border:1px solid var(--line);border-radius:8px;padding:12px 14px;}
+        .box h4{font-size:12px;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+        .box .positive{color:#047857;}
+        .box .improve{color:#B45309;}
+        .box li{list-style:none;font-size:12.5px;padding:6px 0;border-bottom:1px dashed var(--line);}
+        .box li:last-child{border-bottom:0;}
+        .box .muted{color:var(--muted);font-style:italic;list-style:none;padding:4px 0;border:0;}
+        .period-note{font-size:11px;color:var(--muted);margin-top:10px;}
+
+        .error-panel{
+            border:1px solid #FCA5A5;background:#FEF2F2;color:#991B1B;
+            padding:16px;border-radius:8px;font-size:14px;margin-top:12px;
+        }
+
+        /* ---------- Print rules ---------- */
+        @media print{
+            @page{size:A4;margin:16mm 12mm;}
+            body{background:#fff;font-size:11pt;}
+            .toolbar{display:none !important;}
+            .no-print{display:none !important;}
+            .page{padding:0;max-width:100%;}
+            .staff-page{page-break-before:always;}
+            .staff-page:first-of-type{page-break-before:auto;}
+            .cols,.box,.kpi,table{border-color:#aaa;}
+            *{box-shadow:none !important;}
+        }
+    </style>
+</head>
+<body>
+    <div class="toolbar no-print">
+        <button type="button" class="btn gold" onclick="window.print()">Print / Save as PDF</button>
+        <a class="btn ghost" href="/report">All Staff Report</a>
+        <a class="btn ghost" href="/dashboard">Back to Dashboard</a>
+    </div>
+
+    <div class="page">
+        {% if error %}
+        <div class="error-panel">{{ error }}</div>
+        {% else %}
+        <header class="doc-header">
+            <div class="org">{{ site_title }}</div>
+            <h1>360° Peer Assessment Report</h1>
+            <div class="meta">
+                <span><b>Scope:</b> {{ 'All Staff' if scope == 'all' else 'Individual Staff' }}</span>
+                <span><b>Generated:</b> {{ generated_at }}</span>
+                <span><b>Staff listed:</b> {{ report_rows | length }}</span>
+            </div>
+        </header>
+
+        {% if scope == 'all' %}
+        <h2 class="section-title">Staff Summary &amp; Ranking</h2>
+        <table class="summary">
+            <thead>
+                <tr>
+                    <th style="width:52px;">Rank</th>
+                    <th>Staff</th>
+                    <th style="width:70px;" class="num">Gender</th>
+                    <th style="width:80px;" class="num">Reviews</th>
+                    <th style="width:78px;" class="num">Overall Avg</th>
+                    <th style="width:120px;">Band</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in summary_rows %}
+                <tr>
+                    <td><span class="rank-badge {% if s.rank <= 3 %}top{% endif %}">{{ s.rank }}</span></td>
+                    <td><strong>{{ s.name }}</strong></td>
+                    <td class="num">
+                        {% if s.gender == 'male' %}♂ Male{% elif s.gender == 'female' %}♀ Female{% else %}—{% endif %}
+                    </td>
+                    <td class="num">{{ s.count }}</td>
+                    <td class="num">{% if s.avg is not none %}{{ '%.1f'|format(s.avg) }}{% else %}<span class="no-reviews">No reviews</span>{% endif %}</td>
+                    <td>
+                        {% if s.band %}
+                        <span class="band-pill pill-{{ s.band|lower|replace(' ', '-') }}">{{ s.band }}</span>
+                        {% else %}<span class="band-pill pill-empty">Not assessed</span>{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+
+        {% for r in report_rows %}
+        <section class="staff-page">
+            <div class="staff-head">
+                <div>
+                    <h2>{{ r.name }}
+                        <span class="gender {% if r.gender == 'male' %}male{% elif r.gender == 'female' %}female{% else %}unspecified{% endif %}">
+                            {% if r.gender == 'male' %}♂{% elif r.gender == 'female' %}♀{% endif %}
+                        </span>
+                    </h2>
+                    <div class="sub">{% if scope == 'all' %}Rank #{{ r.rank }} · {% endif %}Gender: {{ r.gender }}</div>
+                </div>
+                <div>
+                    {% if r.overall %}
+                    <span class="band-pill pill-{{ r.overall.band|lower|replace(' ', '-') }}">{{ r.overall.band }}</span>
+                    {% else %}
+                    <span class="band-pill pill-empty">Not yet assessed</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="kpis">
+                <div class="kpi"><div class="num">{{ r.count }}</div><div class="lbl">Appraisals</div></div>
+                <div class="kpi"><div class="num">{{ r.devices }}</div><div class="lbl">Reviewers</div></div>
+                {% if r.overall %}
+                <div class="kpi {% if r.overall.avg >= 80 %}good{% elif r.overall.avg >= 70 %}{% elif r.overall.avg >= 60 %}fair{% else %}poor{% endif %}">
+                    <div class="num">{{ '%.1f'|format(r.overall.avg) }}</div><div class="lbl">Overall Avg</div>
+                </div>
+                {% else %}
+                <div class="kpi"><div class="num">—</div><div class="lbl">Overall Avg</div></div>
+                {% endif %}
+            </div>
+
+            {% if not r.has_data %}
+            <div class="empty-note">This staff member has not received any appraisals yet.</div>
+            {% endif %}
+
+            <h3 class="subhead">Average Assessment Across Thematic Areas</h3>
+            <table class="bars">
+                {% for c in r.categories %}
+                <tr>
+                    <td style="width:34%;">{{ c.label }}</td>
+                    <td class="bar-cell">
+                        <div class="bar">
+                            <div class="fill {% if c.band %}score-{{ c.band|lower|replace(' ', '-') }}{% else %}score-empty{% endif %}" style="width:{{ c.pct }}%"></div>
+                        </div>
+                    </td>
+                    <td class="val">
+                        {% if c.avg is not none %}{{ '%.1f'|format(c.avg) }} <span class="band-name">· {{ c.band }}</span>
+                        {% else %}<span class="band-name">No reviews</span>{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+
+            <h3 class="subhead">Rating Distribution — Reviewers per Band</h3>
+            <table class="dist">
+                <thead>
+                    <tr>
+                        <th style="text-align:left;">Area</th>
+                        {% for b in bands %}<th>{{ b }}</th>{% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in r.categories %}
+                    <tr>
+                        <td class="area">{{ c.label }}</td>
+                        {% for b in bands %}
+                        {% set n = c.bands.get(b, 0) %}
+                        <td class="{% if n > 0 %}hot h-{{ b|lower|replace(' ', '-') }}{% endif %}">{{ n }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="cols">
+                <div class="box">
+                    <h4 class="positive">Strengths</h4>
+                    {% if r.strengths %}
+                    <ul>{% for s in r.strengths %}<li>{{ s }}</li>{% endfor %}</ul>
+                    {% else %}
+                    <p class="muted">No strengths comments received.</p>
+                    {% endif %}
+                </div>
+                <div class="box">
+                    <h4 class="improve">Areas for Improvement</h4>
+                    {% if r.improvements %}
+                    <ul>{% for s in r.improvements %}<li>{{ s }}</li>{% endfor %}</ul>
+                    {% else %}
+                    <p class="muted">No improvement comments received.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if r.first_appraisal %}
+            <p class="period-note">Assessment period: first appraisal {{ r.first_appraisal }} — last appraisal {{ r.last_appraisal }}.</p>
+            {% endif %}
+        </section>
+        {% endfor %}
+        {% endif %}
+    </div>
+</body>
+</html>

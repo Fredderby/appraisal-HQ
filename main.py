@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Form, HTTPException
+from fastapi import FastAPI, Request, Form, Query, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.encoders import jsonable_encoder
 from fastapi.staticfiles import StaticFiles
@@ -15,13 +15,16 @@ import hmac
 import secrets
 import logging
 import pymysql
+from datetime import datetime
 from pymysql import Error, IntegrityError
 
 from core import (
+    BANDS,
     compute_staff_stats,
     device_fingerprint,
     normalize_name,
     score_midpoint,
+    rating_band,
     hash_password,
     verify_password,
     validate_username,
@@ -376,6 +379,96 @@ def base_context(conn):
     }
 
 
+REPORT_CATEGORY_LABELS = {
+    "christian_conduct": "Christian Conduct & Integrity",
+    "job_performance": "Job Performance",
+    "reliability": "Reliability & Accountability",
+    "teamwork": "Teamwork & Relationships",
+    "communication": "Communication",
+    "initiative": "Initiative & Service",
+    "adaptability": "Adaptability & Growth",
+    "overall": "Overall Assessment",
+}
+
+
+def _band_of(avg):
+    if avg is None:
+        return None
+    return rating_band(avg)
+
+
+def _bar_pct(avg):
+    if avg is None:
+        return 0
+    return max(0, min(100, int(round(avg))))
+
+
+def _build_report_categories(stats):
+    cats = stats.get("categories", {})
+    return [
+        {
+            "key": key,
+            "label": label,
+            "avg": (cats.get(key) or {}).get("avg"),
+            "band": _band_of((cats.get(key) or {}).get("avg")),
+            "pct": _bar_pct((cats.get(key) or {}).get("avg")),
+            "bands": (cats.get(key) or {}).get("bands") or {},
+            "samples": (cats.get(key) or {}).get("samples") or 0,
+        }
+        for key, label in REPORT_CATEGORY_LABELS.items()
+    ]
+
+
+def _build_report_staff(staff, stats):
+    count = int(stats.get("count") or 0)
+    oc = stats.get("categories", {}).get("overall") or {}
+    oavg = oc.get("avg")
+    overall = None
+    if oavg is not None:
+        overall = {
+            "avg": oavg,
+            "band": _band_of(oavg),
+            "pct": _bar_pct(oavg),
+            "samples": oc.get("samples") or 0,
+        }
+    return {
+        "id": staff.get("id"),
+        "name": staff.get("name"),
+        "gender": staff.get("gender", "unspecified"),
+        "count": count,
+        "devices": int(stats.get("devices") or 0),
+        "has_data": count > 0,
+        "overall": overall,
+        "categories": _build_report_categories(stats),
+        "strengths": stats.get("strengths") or [],
+        "improvements": stats.get("improvements") or [],
+        "first_appraisal": stats.get("first_appraisal"),
+        "last_appraisal": stats.get("last_appraisal"),
+    }
+
+
+def _sort_report_rows(rows):
+    def key(r):
+        avg = r["overall"]["avg"] if r["overall"] else None
+        return (not r["has_data"], 0 if avg is None else -avg, r["name"].lower())
+    return sorted(rows, key=key)
+
+
+def _report_summary_rows(rows):
+    return [
+        {
+            "rank": i + 1,
+            "name": r["name"],
+            "gender": r["gender"],
+            "count": r["count"],
+            "avg": r["overall"]["avg"] if r["overall"] else None,
+            "band": r["overall"]["band"] if r["overall"] else None,
+            "has_data": r["has_data"],
+        }
+        for i, r in enumerate(rows)
+    ]
+
+
 @app.get("/health")
 async def health():
     conn = get_db_connection()
@@ -586,6 +679,68 @@ async def dashboard(request: Request):
         request,
         {"staff_list": staff_list, "kpis": kpis, "site_title": site_title, "top_leaders": top_leaders if 'top_leaders' in locals() else []},
     )
+
+
+@app.get("/report", response_class=HTMLResponse)
+async def report(request: Request, staff: Optional[str] = Query(None)):
+    if not is_admin(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    conn = get_db_connection()
+    if not conn:
+        return render_template("report.html", request, {"error": "Database connection failed. Please try again later."})
+
+    try:
+        site_title = get_setting(conn, "site_title", "DCLM HQ STAFF PEER ASSESSMENT")
+        staff_members = get_all_staff(conn)
+        cursor = conn.cursor(pymysql.cursors.DictCursor)
+        generated_at = datetime.utcnow().strftime("%A, %d %B %Y — %H:%M")
+
+        def fetch_stats(member):
+            cursor.execute(
+                "SELECT * FROM appraisals WHERE staff_id = %s OR staff_name = %s ORDER BY created_at ASC",
+                (member["id"], member["name"]),
+            )
+            return compute_staff_stats(cursor.fetchall())
+
+        if staff:
+            member = next((m for m in staff_members if m["id"] == staff), None)
+            if not member:
+                return render_template("report.html", request, {"error": "Staff member not found.", "site_title": site_title})
+            report_row = _build_report_staff(member, fetch_stats(member))
+            report_row["rank"] = 1
+            report_rows = [report_row]
+            return render_template(
+                "report.html",
+                request,
+                {
+                    "site_title": site_title,
+                    "generated_at": generated_at,
+                    "scope": "single",
+                    "bands": list(BANDS),
+                    "report_rows": report_rows,
+                    "summary_rows": _report_summary_rows(_sort_report_rows(report_rows)),
+                },
+            )
+
+        report_rows = [_build_report_staff(m, fetch_stats(m)) for m in staff_members]
+        report_rows = _sort_report_rows(report_rows)
+        for i, r in enumerate(report_rows):
+            r["rank"] = i + 1
+        return render_template(
+            "report.html",
+            request,
+            {
+                "site_title": site_title,
+                "generated_at": generated_at,
+                "scope": "all",
+                "bands": list(BANDS),
+                "report_rows": report_rows,
+                "summary_rows": _report_summary_rows(report_rows),
+            },
+        )
+    finally:
+        conn.close()
 
 
 @app.get("/settings", response_class=HTMLResponse)
